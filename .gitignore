@@ -56,3 +56,10 @@ backend/test-service.ts
 test-ocr*.mjs
 test-imei*.jpeg
 pp_*.png
+
+# Imágenes sueltas de muestra en la raíz
+/WhatsApp*.jpeg
+/WhatsApp*.jpg
+/*.jpeg
+/*.jpg
+/*.png
