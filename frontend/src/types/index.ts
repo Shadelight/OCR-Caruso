@@ -37,6 +37,7 @@ export interface Equipo {
   id: number;
   fechaIngreso: string;
   imei: string;
+  imei2: string | null;
   modelo: string;
   clienteNombre: string;
   clienteTelefono: string | null;

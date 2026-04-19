@@ -4,11 +4,12 @@ import { EstadoEquipo, ESTADOS, ESTADO_LABELS, Tienda } from '../types';
 
 interface Props {
   imei: string;
+  imei2?: string | null;
   imagenRuta: string;
   onSaved: () => void;
 }
 
-export default function EquipoForm({ imei, imagenRuta, onSaved }: Props) {
+export default function EquipoForm({ imei, imei2, imagenRuta, onSaved }: Props) {
   const now = new Date();
   const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
     .toISOString()
@@ -49,6 +50,7 @@ export default function EquipoForm({ imei, imagenRuta, onSaved }: Props) {
       await createEquipo({
         ...form,
         imei,
+        imei2: imei2 ?? null,
         imagenRuta,
         precio: parseFloat(form.precio) || 0,
         tiendaId: form.tiendaId ? parseInt(form.tiendaId, 10) : undefined,
@@ -67,13 +69,23 @@ export default function EquipoForm({ imei, imagenRuta, onSaved }: Props) {
 
       <div className="field-row">
         <div className="field">
-          <label>IMEI</label>
+          <label>IMEI 1</label>
           <input className="input" value={imei} readOnly />
         </div>
         <div className="field">
-          <label>Fecha y hora de ingreso *</label>
-          <input className="input" type="datetime-local" value={form.fechaIngreso} onChange={set('fechaIngreso')} />
+          <label>IMEI 2</label>
+          <input
+            className="input"
+            value={imei2 ?? ''}
+            readOnly
+            placeholder="—"
+          />
         </div>
+      </div>
+
+      <div className="field">
+        <label>Fecha y hora de ingreso *</label>
+        <input className="input" type="datetime-local" value={form.fechaIngreso} onChange={set('fechaIngreso')} />
       </div>
 
       <div className="field-row">

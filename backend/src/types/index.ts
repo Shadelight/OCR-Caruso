@@ -31,6 +31,7 @@ export interface Equipo {
   id: number;
   fechaIngreso: string;
   imei: string;
+  imei2: string | null;
   modelo: string;
   clienteNombre: string;
   clienteTelefono: string | null;
@@ -47,6 +48,7 @@ export interface Equipo {
 export interface CreateEquipoDto {
   fechaIngreso: string;
   imei: string;
+  imei2?: string | null;
   modelo: string;
   clienteNombre: string;
   clienteTelefono?: string;
@@ -61,6 +63,7 @@ export interface CreateEquipoDto {
 export interface UpdateEquipoDto {
   fechaIngreso?: string;
   imei?: string;
+  imei2?: string | null;
   modelo?: string;
   clienteNombre?: string;
   clienteTelefono?: string;

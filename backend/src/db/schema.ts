@@ -32,6 +32,7 @@ db.exec(`
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     fechaIngreso    TEXT    NOT NULL,
     imei            TEXT    NOT NULL,
+    imei2           TEXT,
     modelo          TEXT    NOT NULL,
     clienteNombre   TEXT    NOT NULL,
     clienteTelefono TEXT,
@@ -45,5 +46,19 @@ db.exec(`
     updatedAt       TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+// ─── Migraciones suaves para bases ya existentes ─────────────────────────────
+// Agregar columna imei2 si la base venía de la versión anterior.
+try {
+  const cols = db
+    .prepare(`PRAGMA table_info(equipos)`)
+    .all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === 'imei2')) {
+    db.exec(`ALTER TABLE equipos ADD COLUMN imei2 TEXT`);
+    console.log('[DB] Migración aplicada: equipos.imei2');
+  }
+} catch (err) {
+  console.warn('[DB] Error en migración imei2:', err);
+}
 
 export default db;

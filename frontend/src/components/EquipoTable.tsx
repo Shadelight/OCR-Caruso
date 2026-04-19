@@ -41,7 +41,8 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>IMEI</th>
+            <th>IMEI 1</th>
+            <th>IMEI 2</th>
             <th>Modelo</th>
             <th>Cliente</th>
             <th>Servicio</th>
@@ -56,6 +57,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
             <tr key={eq.id}>
               <td>{new Date(eq.fechaIngreso).toLocaleString('es-AR')}</td>
               <td className="imei-cell">{eq.imei}</td>
+              <td className="imei-cell">{eq.imei2 ?? '—'}</td>
               <td>{eq.modelo}</td>
               <td>
                 <div>{eq.clienteNombre}</div>

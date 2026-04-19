@@ -36,7 +36,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   const {
-    fechaIngreso, imei, modelo, clienteNombre, clienteTelefono,
+    fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
     tiendaId, servicio, precio, observaciones, estado, imagenRuta,
   } = req.body;
 
@@ -48,6 +48,7 @@ router.post('/', async (req: Request, res: Response) => {
   const equipo = db.createEquipo({
     fechaIngreso: fechaIngreso || new Date().toISOString(),
     imei,
+    imei2: imei2 ? String(imei2).trim() || null : null,
     modelo,
     clienteNombre,
     clienteTelefono,

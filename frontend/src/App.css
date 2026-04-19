@@ -253,18 +253,30 @@ textarea.input { resize: vertical; }
 }
 
 .candidate-item--selected { border-color: var(--primary); background: var(--primary-light); }
-.candidate-imei { font-family: monospace; font-size: 16px; letter-spacing: 1px; }
+.candidate-imei { font-family: monospace; font-size: 16px; letter-spacing: 1px; flex: 1; }
+.candidate-label {
+  min-width: 64px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted, #666);
+}
+
+.inline-form { display: flex; gap: 8px; }
+.inline-form .input { flex: 1; }
 
 .imei-preview {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
   background: var(--bg);
   border-radius: 6px;
   font-size: 15px;
 }
 
+.imei-preview > div { display: flex; align-items: center; gap: 10px; }
 .imei-preview strong { font-family: monospace; font-size: 17px; color: var(--primary); }
 
 /* ─── Table ─────────────────────────────────────────────────────────── */

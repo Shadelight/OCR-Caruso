@@ -29,6 +29,7 @@ export async function appendEquipoToSheet(equipo: Equipo, tiendaNombre?: string)
   const row = [
     equipo.fechaIngreso,
     equipo.imei,
+    equipo.imei2 ?? '',
     equipo.modelo,
     equipo.clienteNombre,
     equipo.clienteTelefono ?? '',
@@ -60,7 +61,7 @@ export async function ensureSheetHeaders(): Promise<void> {
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A1:J1`,
+    range: `${sheetName}!A1:K1`,
   });
 
   if (!res.data.values || res.data.values.length === 0) {
@@ -70,7 +71,7 @@ export async function ensureSheetHeaders(): Promise<void> {
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [[
-          'FechaHora', 'IMEI', 'Modelo', 'Cliente', 'Telefono',
+          'FechaHora', 'IMEI 1', 'IMEI 2', 'Modelo', 'Cliente', 'Telefono',
           'Tienda', 'Servicio', 'Precio', 'Estado', 'Observaciones',
         ]],
       },

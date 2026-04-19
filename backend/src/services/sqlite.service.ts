@@ -53,7 +53,8 @@ export function getAllEquipos(filters: EquipoFilters = {}): Equipo[] {
   const params: Record<string, string | number> = {};
 
   if (filters.imei) {
-    conditions.push('imei LIKE @imei');
+    // Buscar en ambas columnas (IMEI1 e IMEI2)
+    conditions.push('(imei LIKE @imei OR imei2 LIKE @imei)');
     params.imei = `%${filters.imei}%`;
   }
   if (filters.cliente) {
@@ -91,21 +92,26 @@ export function getEquipoById(id: number): Equipo | undefined {
 }
 
 export function getEquipoByImei(imei: string): Equipo[] {
-  return db.prepare('SELECT * FROM equipos WHERE imei = ? ORDER BY fechaIngreso DESC').all(imei) as Equipo[];
+  return db
+    .prepare(
+      'SELECT * FROM equipos WHERE imei = ? OR imei2 = ? ORDER BY fechaIngreso DESC',
+    )
+    .all(imei, imei) as Equipo[];
 }
 
 export function createEquipo(dto: CreateEquipoDto): Equipo {
   const stmt = db.prepare(`
     INSERT INTO equipos
-      (fechaIngreso, imei, modelo, clienteNombre, clienteTelefono,
+      (fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
        tiendaId, servicio, precio, observaciones, estado, imagenRuta)
     VALUES
-      (@fechaIngreso, @imei, @modelo, @clienteNombre, @clienteTelefono,
+      (@fechaIngreso, @imei, @imei2, @modelo, @clienteNombre, @clienteTelefono,
        @tiendaId, @servicio, @precio, @observaciones, @estado, @imagenRuta)
   `);
   const result = stmt.run({
     fechaIngreso: dto.fechaIngreso,
     imei: dto.imei,
+    imei2: dto.imei2 ?? null,
     modelo: dto.modelo,
     clienteNombre: dto.clienteNombre,
     clienteTelefono: dto.clienteTelefono ?? null,
@@ -126,7 +132,7 @@ export function updateEquipo(id: number, dto: UpdateEquipoDto): Equipo | undefin
   const updated = { ...existing, ...dto, updatedAt: new Date().toISOString() };
   db.prepare(`
     UPDATE equipos
-    SET fechaIngreso = @fechaIngreso, imei = @imei, modelo = @modelo,
+    SET fechaIngreso = @fechaIngreso, imei = @imei, imei2 = @imei2, modelo = @modelo,
         clienteNombre = @clienteNombre, clienteTelefono = @clienteTelefono,
         tiendaId = @tiendaId, servicio = @servicio, precio = @precio,
         observaciones = @observaciones, estado = @estado,

@@ -10,6 +10,7 @@ export default function Home() {
   const [step, setStep] = useState<Step>('upload');
   const [ocrResult, setOcrResult] = useState<OcrResponse | null>(null);
   const [confirmedImei, setConfirmedImei] = useState('');
+  const [confirmedImei2, setConfirmedImei2] = useState<string | null>(null);
   const [confirmedImagen, setConfirmedImagen] = useState('');
 
   const handleOcrResult = (result: OcrResponse) => {
@@ -17,8 +18,13 @@ export default function Home() {
     setStep('confirm');
   };
 
-  const handleImeiConfirm = (imei: string, imagenRuta: string) => {
+  const handleImeiConfirm = (
+    imei: string,
+    imei2: string | null,
+    imagenRuta: string,
+  ) => {
     setConfirmedImei(imei);
+    setConfirmedImei2(imei2);
     setConfirmedImagen(imagenRuta);
     setStep('form');
   };
@@ -31,6 +37,7 @@ export default function Home() {
     setStep('upload');
     setOcrResult(null);
     setConfirmedImei('');
+    setConfirmedImei2(null);
     setConfirmedImagen('');
   };
 
@@ -67,14 +74,27 @@ export default function Home() {
       )}
 
       {step === 'form' && (
-        <EquipoForm imei={confirmedImei} imagenRuta={confirmedImagen} onSaved={handleSaved} />
+        <EquipoForm
+          imei={confirmedImei}
+          imei2={confirmedImei2}
+          imagenRuta={confirmedImagen}
+          onSaved={handleSaved}
+        />
       )}
 
       {step === 'done' && (
         <div className="card card--success">
           <div className="success-icon">✓</div>
           <h2>Equipo registrado correctamente</h2>
-          <p>El equipo con IMEI <strong>{confirmedImei}</strong> fue guardado en la base de datos y sincronizado con Google Sheets.</p>
+          <p>
+            El equipo con IMEI <strong>{confirmedImei}</strong>
+            {confirmedImei2 && (
+              <>
+                {' '}y <strong>{confirmedImei2}</strong>
+              </>
+            )}{' '}
+            fue guardado en la base de datos y sincronizado con Google Sheets.
+          </p>
           <div className="action-group">
             <button className="btn btn-primary" onClick={reset}>
               Registrar otro equipo
