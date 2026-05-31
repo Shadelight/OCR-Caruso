@@ -12,7 +12,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "20.18.0"
+        value: "22.11.0"
       # URL del frontend en Vercel (para CORS)
       - key: FRONTEND_ORIGIN
         sync: false
