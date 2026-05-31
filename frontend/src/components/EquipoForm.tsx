@@ -123,7 +123,19 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         </div>
         <div className="field">
           <label>Precio</label>
-          <input className="input" type="number" min="0" step="0.01" placeholder="0.00" value={form.precio} onChange={set('precio')} />
+          <div className="input-prefix">
+            <span className="input-prefix__tag">Bs.</span>
+            <input
+              className="input"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={form.precio}
+              onChange={set('precio')}
+            />
+          </div>
         </div>
       </div>
 

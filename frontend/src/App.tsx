@@ -7,7 +7,7 @@ import './App.css';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="layout">
         <nav className="sidebar">
           <div className="sidebar-brand">

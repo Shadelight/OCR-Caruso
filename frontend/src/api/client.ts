@@ -5,6 +5,17 @@ import { Equipo, Tienda, OcrResponse } from '../types';
 // En producción, VITE_API_URL apunta al backend (ej: https://xxx.onrender.com/api).
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 
+// ─── Estado / salud ───────────────────────────────────────────────────────────
+
+export async function getHealth(): Promise<boolean> {
+  try {
+    const res = await api.get<{ status: string }>('/health', { timeout: 8000 });
+    return res.data?.status === 'ok';
+  } catch {
+    return false;
+  }
+}
+
 // ─── OCR ────────────────────────────────────────────────────────────────────
 
 export async function extractImei(file: File): Promise<OcrResponse> {

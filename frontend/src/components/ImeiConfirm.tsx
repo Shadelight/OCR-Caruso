@@ -84,6 +84,9 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
 
       {detectados.length > 0 && (
         <>
+          <span className="ocr-detected">
+            ✓ {detectados.length} {detectados.length === 1 ? 'IMEI detectado' : 'IMEIs detectados'} automáticamente
+          </span>
           <p className="card-sub">
             OCR completo. Marca los IMEIs correctos antes de registrar el equipo.
           </p>

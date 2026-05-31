@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import ImeiConfirm from '../components/ImeiConfirm';
 import EquipoForm from '../components/EquipoForm';
 import { OcrResponse } from '../types';
+import { getHealth, getEquipos } from '../api/client';
 
 type Step = 'upload' | 'confirm' | 'form' | 'done';
 
@@ -12,6 +13,20 @@ export default function Home() {
   const [confirmedImei, setConfirmedImei] = useState('');
   const [confirmedImei2, setConfirmedImei2] = useState<string | null>(null);
   const [confirmedImagen, setConfirmedImagen] = useState('');
+  const [backendOk, setBackendOk] = useState<boolean | null>(null);
+  const [totalEquipos, setTotalEquipos] = useState<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getHealth().then((ok) => {
+      if (!alive) return;
+      setBackendOk(ok);
+      if (ok) getEquipos().then((e) => alive && setTotalEquipos(e.length)).catch(() => {});
+    });
+    return () => {
+      alive = false;
+    };
+  }, [step]);
 
   const handleOcrResult = (result: OcrResponse) => {
     setOcrResult(result);
@@ -71,18 +86,23 @@ export default function Home() {
         <p className="page-sub">
           Sube una foto, confirma los IMEIs detectados y registra el servicio sin friccion.
         </p>
-        <div className="hero-metrics" aria-label="Resumen del flujo">
+        <div className="hero-metrics" aria-label="Estado del sistema">
           <div className="hero-metric">
-            <strong>1</strong>
-            <span>Imagen</span>
+            <strong>
+              <span
+                className={`live-dot ${backendOk === null ? 'live-dot--wait' : backendOk ? 'live-dot--ok' : 'live-dot--off'}`}
+              />
+              {backendOk === null ? '...' : backendOk ? 'Online' : 'Offline'}
+            </strong>
+            <span>Backend</span>
           </div>
           <div className="hero-metric">
-            <strong>OCR</strong>
-            <span>Deteccion</span>
+            <strong>Listo</strong>
+            <span>OCR</span>
           </div>
           <div className="hero-metric">
-            <strong>Sheets</strong>
-            <span>Sincronizado</span>
+            <strong>{totalEquipos === null ? '—' : totalEquipos}</strong>
+            <span>Procesados</span>
           </div>
         </div>
       </section>
@@ -110,7 +130,7 @@ export default function Home() {
       </div>
 
       {step === 'upload' && (
-        <div className="card">
+        <div className="card motion-card">
           <h2 className="card-title">Arrastra una imagen del IMEI</h2>
           <p className="card-sub">OCR automatico en segundos, con vista previa inmediata.</p>
           <ImageUploader onResult={handleOcrResult} />
