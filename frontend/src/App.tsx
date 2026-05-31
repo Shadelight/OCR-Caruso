@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Home from './pages/Home';
 import Equipos from './pages/Equipos';
 import Tiendas from './pages/Tiendas';
+import InstallPrompt from './components/InstallPrompt';
 import './App.css';
 
 export default function App() {
@@ -15,13 +16,16 @@ export default function App() {
           </div>
           <div className="nav-links">
             <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              + Nuevo ingreso
+              <span className="nav-icon">＋</span>
+              <span className="nav-text">Nuevo ingreso</span>
             </NavLink>
             <NavLink to="/equipos" className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              Historial
+              <span className="nav-icon">🗂</span>
+              <span className="nav-text">Historial</span>
             </NavLink>
             <NavLink to="/tiendas" className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              Tiendas
+              <span className="nav-icon">🏬</span>
+              <span className="nav-text">Tiendas</span>
             </NavLink>
           </div>
         </nav>
@@ -32,6 +36,9 @@ export default function App() {
             <Route path="/tiendas" element={<Tiendas />} />
           </Routes>
         </main>
+
+        <InstallPrompt />
+        <span className="app-version">v{__APP_VERSION__}</span>
       </div>
     </BrowserRouter>
   );

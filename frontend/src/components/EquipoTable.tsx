@@ -55,18 +55,18 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
         <tbody>
           {equipos.map((eq) => (
             <tr key={eq.id}>
-              <td>{new Date(eq.fechaIngreso).toLocaleString('es-AR')}</td>
-              <td className="imei-cell">{eq.imei}</td>
-              <td className="imei-cell">{eq.imei2 ?? '—'}</td>
-              <td>{eq.modelo}</td>
-              <td>
+              <td data-label="Fecha">{new Date(eq.fechaIngreso).toLocaleString('es-AR')}</td>
+              <td data-label="IMEI 1" className="imei-cell">{eq.imei}</td>
+              <td data-label="IMEI 2" className="imei-cell">{eq.imei2 ?? '—'}</td>
+              <td data-label="Modelo">{eq.modelo}</td>
+              <td data-label="Cliente">
                 <div>{eq.clienteNombre}</div>
                 {eq.clienteTelefono && <div className="cell-sub">{eq.clienteTelefono}</div>}
               </td>
-              <td>{eq.servicio}</td>
-              <td>${eq.precio.toLocaleString('es-AR')}</td>
-              <td>{eq.tiendaId ? tiendaMap[eq.tiendaId] ?? '—' : '—'}</td>
-              <td>
+              <td data-label="Servicio">{eq.servicio}</td>
+              <td data-label="Precio">${eq.precio.toLocaleString('es-AR')}</td>
+              <td data-label="Tienda">{eq.tiendaId ? tiendaMap[eq.tiendaId] ?? '—' : '—'}</td>
+              <td data-label="Estado">
                 {editingId === eq.id ? (
                   <select
                     className="input input--sm"
@@ -83,7 +83,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
                   </span>
                 )}
               </td>
-              <td>
+              <td data-label="Acciones">
                 {editingId === eq.id ? (
                   <div className="action-group">
                     <button className="btn btn-primary btn-xs" onClick={() => saveEstado(eq.id)} disabled={saving}>
