@@ -11,7 +11,12 @@ export default function TiendaTable({ tiendas, onUpdated }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   if (tiendas.length === 0) {
-    return <p className="empty-msg">No hay tiendas registradas.</p>;
+    return (
+      <div className="empty-state">
+        <strong>Todavia no hay tiendas</strong>
+        <span>Crea una tienda para asociar ingresos, clientes y servicios.</span>
+      </div>
+    );
   }
 
   return (

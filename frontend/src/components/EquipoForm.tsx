@@ -7,7 +7,6 @@ interface Props {
   imei2?: string | null;
   imagenRuta: string;
   onSaved: () => void;
-  /** Volver al paso de confirmar IMEI. */
   onBack?: () => void;
 }
 
@@ -43,7 +42,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.modelo || !form.clienteNombre || !form.servicio) {
-      setError('Completá los campos obligatorios: modelo, cliente y servicio.');
+      setError('Completa los campos obligatorios: modelo, cliente y servicio.');
       return;
     }
     setSaving(true);
@@ -59,7 +58,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
       });
       onSaved();
     } catch {
-      setError('Error al guardar el equipo. Intentá de nuevo.');
+      setError('Error al guardar el equipo. Intenta de nuevo.');
     } finally {
       setSaving(false);
     }
@@ -68,6 +67,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
   return (
     <form className="card equipo-form" onSubmit={handleSubmit}>
       <h2 className="card-title">Registrar equipo</h2>
+      <p className="card-sub">Completa los datos del servicio antes de sincronizar.</p>
 
       <div className="field-row">
         <div className="field">
@@ -80,7 +80,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
             className="input"
             value={imei2 ?? ''}
             readOnly
-            placeholder="—"
+            placeholder="-"
           />
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
 
       <div className="field-row">
         <div className="field">
-          <label>Modelo del teléfono *</label>
+          <label>Modelo del telefono *</label>
           <input className="input" placeholder="Ej: Samsung Galaxy A54" value={form.modelo} onChange={set('modelo')} />
         </div>
         <div className="field">
@@ -111,7 +111,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
           <input className="input" placeholder="Nombre completo" value={form.clienteNombre} onChange={set('clienteNombre')} />
         </div>
         <div className="field">
-          <label>Teléfono del cliente</label>
+          <label>Telefono del cliente</label>
           <input className="input" placeholder="Ej: 11 2345 6789" value={form.clienteTelefono} onChange={set('clienteTelefono')} />
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
 
       <div className="field">
         <label>Observaciones</label>
-        <textarea className="input" rows={3} placeholder="Estado físico, accesorios, notas..." value={form.observaciones} onChange={set('observaciones')} />
+        <textarea className="input" rows={3} placeholder="Estado fisico, accesorios, notas..." value={form.observaciones} onChange={set('observaciones')} />
       </div>
 
       {error && <p className="error-msg">{error}</p>}
@@ -152,7 +152,7 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
             onClick={onBack}
             disabled={saving}
           >
-            ← Volver
+            Volver
           </button>
         )}
         <button className="btn btn-primary" type="submit" disabled={saving}>

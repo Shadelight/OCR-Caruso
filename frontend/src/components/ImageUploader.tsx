@@ -20,7 +20,7 @@ export default function ImageUploader({ onResult }: Props) {
       const result = await extractImei(file);
       onResult(result);
     } catch {
-      setError('Error al procesar la imagen. Intentá de nuevo.');
+      setError('Error al procesar la imagen. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -49,15 +49,29 @@ export default function ImageUploader({ onResult }: Props) {
           <img src={preview} alt="Vista previa" className="preview-img" />
         ) : (
           <div className="drop-placeholder">
-            <span className="drop-icon">📷</span>
-            <p>Arrastrá una imagen aquí o hacé clic para seleccionar</p>
-            <p className="drop-hint">JPG, PNG, BMP, TIFF hasta 10 MB</p>
+            <span className="drop-icon">OCR</span>
+            <p className="drop-title">Arrastra una imagen del IMEI</p>
+            <p className="drop-copy">
+              La vista previa aparece al instante y el OCR detecta los numeros para confirmar.
+            </p>
+            <div className="drop-chips">
+              <span className="drop-chip">JPG</span>
+              <span className="drop-chip">PNG</span>
+              <span className="drop-chip">TIFF</span>
+              <span className="drop-chip">Hasta 10 MB</span>
+            </div>
+            <p className="drop-hint">Click para seleccionar archivo</p>
           </div>
         )}
+
         {loading && (
           <div className="drop-overlay">
             <div className="spinner" />
-            <p>Analizando imagen con OCR...</p>
+            <strong>Analizando imagen con OCR</strong>
+            <div className="ocr-progress" aria-hidden="true">
+              <span />
+            </div>
+            <p className="drop-copy">Buscando patrones de IMEI y limpiando la lectura.</p>
           </div>
         )}
       </div>

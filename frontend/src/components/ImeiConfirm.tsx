@@ -3,13 +3,7 @@ import { OcrResponse } from '../types';
 
 interface Props {
   ocrResult: OcrResponse;
-  /**
-   * Se llama con los IMEIs finales elegidos:
-   * - imei1: obligatorio
-   * - imei2: opcional (null si el equipo es single-SIM)
-   */
   onConfirm: (imei1: string, imei2: string | null, imagenRuta: string) => void;
-  /** Volver al paso anterior (subir otra imagen). */
   onBack: () => void;
 }
 
@@ -18,9 +12,6 @@ function isValidImei(raw: string): boolean {
 }
 
 export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
-  // Por defecto: marcar todos los candidatos detectados (hasta 2).
-  // Si el OCR detecta 1, queda 1 marcado.
-  // Si detecta 2, quedan los 2 marcados (el usuario puede destildar uno).
   const detectados = ocrResult.candidatos.slice(0, 2);
 
   const [selected, setSelected] = useState<Set<string>>(
@@ -41,11 +32,11 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
   const addManual = () => {
     const clean = manualExtra.trim();
     if (!isValidImei(clean)) {
-      alert('El IMEI debe tener exactamente 15 dígitos.');
+      alert('El IMEI debe tener exactamente 15 digitos.');
       return;
     }
     if (manualList.includes(clean) || detectados.includes(clean)) {
-      alert('Ese IMEI ya está en la lista.');
+      alert('Ese IMEI ya esta en la lista.');
       return;
     }
     setManualList((l) => [...l, clean]);
@@ -62,7 +53,6 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
     });
   };
 
-  // Lista unificada, respetando orden: primero detectados, después manuales
   const allImeis = useMemo(
     () => [...detectados, ...manualList],
     [detectados, manualList],
@@ -74,7 +64,7 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
 
   const handleConfirm = () => {
     if (!imei1) {
-      alert('Tenés que seleccionar al menos un IMEI.');
+      alert('Tenes que seleccionar al menos un IMEI.');
       return;
     }
     onConfirm(imei1, imei2, ocrResult.imagenRuta);
@@ -84,19 +74,18 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
 
   return (
     <div className="card">
-      <h2 className="card-title">Confirmar IMEI(s)</h2>
+      <h2 className="card-title">IMEIs detectados</h2>
 
       {sinCandidatos && (
         <div className="alert alert-warning">
-          No se detectó ningún IMEI en la imagen. Ingresalo manualmente abajo.
+          No se detecto ningun IMEI en la imagen. Ingresalo manualmente abajo.
         </div>
       )}
 
       {detectados.length > 0 && (
         <>
           <p className="card-sub">
-            Detectados en la imagen. Marcá los que correspondan
-            {detectados.length > 1 ? ' (podés elegir uno o los dos)' : ''}.
+            OCR completo. Marca los IMEIs correctos antes de registrar el equipo.
           </p>
           <div className="candidates-list">
             {detectados.map((c, idx) => (
@@ -157,7 +146,7 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
         <div className="inline-form">
           <input
             type="text"
-            placeholder="15 dígitos"
+            placeholder="15 digitos"
             maxLength={15}
             value={manualExtra}
             onChange={(e) => setManualExtra(e.target.value.replace(/\D/g, ''))}
@@ -176,12 +165,12 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
 
       <div className="imei-preview">
         <div>
-          <span>IMEI 1:</span>
-          <strong>{imei1 ?? '—'}</strong>
+          <span>IMEI 1</span>
+          <strong>{imei1 ?? '-'}</strong>
         </div>
         <div>
-          <span>IMEI 2:</span>
-          <strong>{imei2 ?? '—'}</strong>
+          <span>IMEI 2</span>
+          <strong>{imei2 ?? '-'}</strong>
         </div>
       </div>
 
@@ -191,7 +180,7 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
           className="btn btn-secondary"
           onClick={onBack}
         >
-          ← Subir otra imagen
+          Subir otra imagen
         </button>
         <button
           className="btn btn-primary"

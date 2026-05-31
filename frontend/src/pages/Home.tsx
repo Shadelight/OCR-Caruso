@@ -33,7 +33,6 @@ export default function Home() {
     setStep('done');
   };
 
-  /** Volver a subir otra imagen (descarta el resultado OCR actual). */
   const goBackToUpload = () => {
     setOcrResult(null);
     setConfirmedImei('');
@@ -42,7 +41,6 @@ export default function Home() {
     setStep('upload');
   };
 
-  /** Volver al paso de confirmar IMEI (mantiene el resultado OCR). */
   const goBackToConfirm = () => {
     setStep('confirm');
   };
@@ -55,12 +53,10 @@ export default function Home() {
     setConfirmedImagen('');
   };
 
-  /** Permite saltar entre pasos haciendo clic en el indicador de pasos. */
   const handleStepClick = (target: Step) => {
     const stepOrder: Step[] = ['upload', 'confirm', 'form', 'done'];
     const currentIdx = stepOrder.indexOf(step);
     const targetIdx = stepOrder.indexOf(target);
-    // Solo dejar retroceder (no saltar hacia adelante sin completar)
     if (targetIdx >= currentIdx) return;
 
     if (target === 'upload') goBackToUpload();
@@ -69,10 +65,27 @@ export default function Home() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h1>Nuevo ingreso</h1>
-        <p className="page-sub">Subí una imagen con el IMEI del dispositivo para comenzar</p>
-      </div>
+      <section className="hero-card">
+        <span className="hero-kicker">OCR automatico</span>
+        <h1>Ingreso premium de equipos por IMEI.</h1>
+        <p className="page-sub">
+          Sube una foto, confirma los IMEIs detectados y registra el servicio sin friccion.
+        </p>
+        <div className="hero-metrics" aria-label="Resumen del flujo">
+          <div className="hero-metric">
+            <strong>1</strong>
+            <span>Imagen</span>
+          </div>
+          <div className="hero-metric">
+            <strong>OCR</strong>
+            <span>Deteccion</span>
+          </div>
+          <div className="hero-metric">
+            <strong>Sheets</strong>
+            <span>Sincronizado</span>
+          </div>
+        </div>
+      </section>
 
       <div className="steps">
         {(['upload', 'confirm', 'form'] as Step[]).map((s, i) => {
@@ -85,11 +98,11 @@ export default function Home() {
               key={s}
               onClick={clickable ? () => handleStepClick(s) : undefined}
               className={`step ${isActive ? 'step--active' : ''} ${isDone ? 'step--done' : ''} ${clickable ? 'step--clickable' : ''}`}
-              title={clickable ? 'Hacé clic para volver a este paso' : undefined}
+              title={clickable ? 'Volver a este paso' : undefined}
             >
               <div className="step-num">{i + 1}</div>
               <div className="step-label">
-                {s === 'upload' ? 'Subir imagen' : s === 'confirm' ? 'Confirmar IMEI' : 'Registrar'}
+                {s === 'upload' ? 'Subir' : s === 'confirm' ? 'Confirmar' : 'Registrar'}
               </div>
             </div>
           );
@@ -98,8 +111,8 @@ export default function Home() {
 
       {step === 'upload' && (
         <div className="card">
-          <h2 className="card-title">Subir imagen</h2>
-          <p className="card-sub">Captura de pantalla, foto del IMEI o etiqueta trasera</p>
+          <h2 className="card-title">Arrastra una imagen del IMEI</h2>
+          <p className="card-sub">OCR automatico en segundos, con vista previa inmediata.</p>
           <ImageUploader onResult={handleOcrResult} />
         </div>
       )}
@@ -133,7 +146,7 @@ export default function Home() {
                 {' '}y <strong>{confirmedImei2}</strong>
               </>
             )}{' '}
-            fue guardado en la base de datos y sincronizado con Google Sheets.
+            fue guardado y sincronizado con Google Sheets.
           </p>
           <div className="action-group">
             <button className="btn btn-primary" onClick={reset}>

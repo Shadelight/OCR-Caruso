@@ -51,16 +51,18 @@ export default function Equipos() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Historial de equipos</h1>
-        <p className="page-sub">{equipos.length} equipo{equipos.length !== 1 ? 's' : ''} encontrado{equipos.length !== 1 ? 's' : ''}</p>
+        <div>
+          <h1>Historial</h1>
+          <p className="page-sub">{equipos.length} equipo{equipos.length !== 1 ? 's' : ''} encontrado{equipos.length !== 1 ? 's' : ''}</p>
+        </div>
       </div>
 
       <div className="card">
-        <h3 className="card-title">Filtros</h3>
+        <h3 className="card-title">Filtros inteligentes</h3>
         <div className="filter-grid">
           <div className="field">
             <label>Buscar por IMEI</label>
-            <input className="input" placeholder="15 dígitos..." value={filters.imei} onChange={set('imei')} />
+            <input className="input" placeholder="15 digitos..." value={filters.imei} onChange={set('imei')} />
           </div>
           <div className="field">
             <label>Cliente</label>
@@ -106,7 +108,7 @@ export default function Equipos() {
       </div>
 
       {loading ? (
-        <div className="loading-msg">Cargando equipos...</div>
+        <div className="card loading-msg">Cargando equipos...</div>
       ) : (
         <EquipoTable equipos={equipos} tiendas={tiendas} onUpdated={fetchEquipos} />
       )}
