@@ -61,8 +61,15 @@ test-imei*.jpeg
 pp_*.png
 
 # Imágenes sueltas de muestra en la raíz
-/WhatsApp*.jpeg
-/WhatsApp*.jpg
 /*.jpeg
 /*.jpg
 /*.png
+
+# Bases de datos temporales en la raíz
+/auth
+/auth-wal
+/auth-shm
+
+# Scripts de prueba y archivos temporales del backend
+backend/_*
+
