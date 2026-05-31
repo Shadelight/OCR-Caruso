@@ -118,6 +118,8 @@ body { background: var(--bg); }
 
 .step--active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
 .step--done { border-color: #86efac; color: var(--success); background: var(--success-light); }
+.step--clickable { cursor: pointer; transition: transform 0.1s; }
+.step--clickable:hover { transform: translateY(-2px); }
 
 .step-num {
   width: 24px; height: 24px;

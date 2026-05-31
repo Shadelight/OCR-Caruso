@@ -8,6 +8,9 @@ build/
 */dist/
 */build/
 
+# Artefactos temporales de Vite
+**/vite.config.ts.timestamp-*.mjs
+
 # Logs
 *.log
 npm-debug.log*

@@ -33,12 +33,38 @@ export default function Home() {
     setStep('done');
   };
 
+  /** Volver a subir otra imagen (descarta el resultado OCR actual). */
+  const goBackToUpload = () => {
+    setOcrResult(null);
+    setConfirmedImei('');
+    setConfirmedImei2(null);
+    setConfirmedImagen('');
+    setStep('upload');
+  };
+
+  /** Volver al paso de confirmar IMEI (mantiene el resultado OCR). */
+  const goBackToConfirm = () => {
+    setStep('confirm');
+  };
+
   const reset = () => {
     setStep('upload');
     setOcrResult(null);
     setConfirmedImei('');
     setConfirmedImei2(null);
     setConfirmedImagen('');
+  };
+
+  /** Permite saltar entre pasos haciendo clic en el indicador de pasos. */
+  const handleStepClick = (target: Step) => {
+    const stepOrder: Step[] = ['upload', 'confirm', 'form', 'done'];
+    const currentIdx = stepOrder.indexOf(step);
+    const targetIdx = stepOrder.indexOf(target);
+    // Solo dejar retroceder (no saltar hacia adelante sin completar)
+    if (targetIdx >= currentIdx) return;
+
+    if (target === 'upload') goBackToUpload();
+    else if (target === 'confirm' && ocrResult) goBackToConfirm();
   };
 
   return (
@@ -49,28 +75,41 @@ export default function Home() {
       </div>
 
       <div className="steps">
-        {(['upload', 'confirm', 'form'] as Step[]).map((s, i) => (
-          <div key={s} className={`step ${step === s ? 'step--active' : ''} ${
-            ['upload', 'confirm', 'form', 'done'].indexOf(step) > i ? 'step--done' : ''
-          }`}>
-            <div className="step-num">{i + 1}</div>
-            <div className="step-label">
-              {s === 'upload' ? 'Subir imagen' : s === 'confirm' ? 'Confirmar IMEI' : 'Registrar'}
+        {(['upload', 'confirm', 'form'] as Step[]).map((s, i) => {
+          const stepOrder: Step[] = ['upload', 'confirm', 'form', 'done'];
+          const isDone = stepOrder.indexOf(step) > i;
+          const isActive = step === s;
+          const clickable = isDone;
+          return (
+            <div
+              key={s}
+              onClick={clickable ? () => handleStepClick(s) : undefined}
+              className={`step ${isActive ? 'step--active' : ''} ${isDone ? 'step--done' : ''} ${clickable ? 'step--clickable' : ''}`}
+              title={clickable ? 'Hacé clic para volver a este paso' : undefined}
+            >
+              <div className="step-num">{i + 1}</div>
+              <div className="step-label">
+                {s === 'upload' ? 'Subir imagen' : s === 'confirm' ? 'Confirmar IMEI' : 'Registrar'}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {step === 'upload' && (
         <div className="card">
           <h2 className="card-title">Subir imagen</h2>
-          <p className="card-sub">Captura de pantalla, foto del IMEI (*#06#) o etiqueta trasera</p>
+          <p className="card-sub">Captura de pantalla, foto del IMEI o etiqueta trasera</p>
           <ImageUploader onResult={handleOcrResult} />
         </div>
       )}
 
       {step === 'confirm' && ocrResult && (
-        <ImeiConfirm ocrResult={ocrResult} onConfirm={handleImeiConfirm} />
+        <ImeiConfirm
+          ocrResult={ocrResult}
+          onConfirm={handleImeiConfirm}
+          onBack={goBackToUpload}
+        />
       )}
 
       {step === 'form' && (
@@ -79,6 +118,7 @@ export default function Home() {
           imei2={confirmedImei2}
           imagenRuta={confirmedImagen}
           onSaved={handleSaved}
+          onBack={goBackToConfirm}
         />
       )}
 

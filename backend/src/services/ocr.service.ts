@@ -1,7 +1,5 @@
 import Tesseract from 'tesseract.js';
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs';
 import { OcrResult } from '../types';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,27 +207,21 @@ function buildVariants(): PreprocessVariant[] {
 }
 
 async function preprocessVariant(
-  imagePath: string,
+  input: Buffer,
   variant: PreprocessVariant,
-): Promise<string> {
-  const dir = path.dirname(imagePath);
-  const ext = path.extname(imagePath);
-  const base = path.basename(imagePath, ext);
-  const outPath = path.join(dir, `${base}__pp_${variant.name}.png`);
-
+): Promise<Buffer> {
   // sharp(...).rotate() sin argumentos respeta EXIF.
   // rotate(90/180/270) aplica rotación explícita sobre la imagen.
-  const base$ = sharp(imagePath).rotate(); // aplica EXIF primero
+  const base$ = sharp(input).rotate(); // aplica EXIF primero
   const rotated =
     variant.rotation === 0 ? base$ : base$.rotate(variant.rotation);
   const pipeline = variant.apply(rotated);
 
-  await pipeline.toFormat('png').toFile(outPath);
-  return outPath;
+  return pipeline.toFormat('png').toBuffer();
 }
 
-async function runTesseract(imagePath: string, psm: number): Promise<string> {
-  const { data } = await Tesseract.recognize(imagePath, 'eng', {
+async function runTesseract(image: Buffer, psm: number): Promise<string> {
+  const { data } = await Tesseract.recognize(image, 'eng', {
     logger: () => {},
     // @ts-ignore - estos params son válidos en runtime
     tessedit_pageseg_mode: String(psm),
@@ -242,9 +234,8 @@ async function runTesseract(imagePath: string, psm: number): Promise<string> {
 // Entrypoint
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function extractImeiFromImage(imagePath: string): Promise<OcrResult> {
+export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResult> {
   const variants = buildVariants();
-  const archivosTmp: string[] = [];
   const textos: string[] = [];
 
   // PSM 6 (bloque uniforme) funciona mejor para pantallas tipo "About".
@@ -253,10 +244,9 @@ export async function extractImeiFromImage(imagePath: string): Promise<OcrResult
   let detectados: string[] = [];
 
   outer: for (const variant of variants) {
-    let ppPath: string | null = null;
+    let ppBuffer: Buffer;
     try {
-      ppPath = await preprocessVariant(imagePath, variant);
-      archivosTmp.push(ppPath);
+      ppBuffer = await preprocessVariant(imageBuffer, variant);
     } catch (err) {
       console.warn(`[OCR] preprocess "${variant.name}" falló:`, err);
       continue;
@@ -264,7 +254,7 @@ export async function extractImeiFromImage(imagePath: string): Promise<OcrResult
 
     for (const psm of psms) {
       try {
-        const t = await runTesseract(ppPath, psm);
+        const t = await runTesseract(ppBuffer, psm);
         if (t && t.trim().length > 0) textos.push(t);
       } catch (err) {
         console.warn(`[OCR] fallo con PSM ${psm} en ${variant.name}:`, err);
@@ -280,7 +270,7 @@ export async function extractImeiFromImage(imagePath: string): Promise<OcrResult
   // Fallback: si no encontramos nada con preprocess, probar imagen cruda
   if (detectados.length === 0) {
     try {
-      textos.push(await runTesseract(imagePath, 6));
+      textos.push(await runTesseract(imageBuffer, 6));
       detectados = extractCandidates(textos.join('\n'));
     } catch (err) {
       console.warn('[OCR] fallback original falló:', err);
@@ -288,11 +278,6 @@ export async function extractImeiFromImage(imagePath: string): Promise<OcrResult
   }
 
   const textoCompleto = textos.join('\n');
-
-  // Limpieza de archivos temporales
-  for (const f of archivosTmp) {
-    fs.unlink(f, () => {});
-  }
 
   return { candidatos: detectados, textoCompleto };
 }

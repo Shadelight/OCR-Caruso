@@ -9,13 +9,15 @@ interface Props {
    * - imei2: opcional (null si el equipo es single-SIM)
    */
   onConfirm: (imei1: string, imei2: string | null, imagenRuta: string) => void;
+  /** Volver al paso anterior (subir otra imagen). */
+  onBack: () => void;
 }
 
 function isValidImei(raw: string): boolean {
   return /^\d{15}$/.test(raw);
 }
 
-export default function ImeiConfirm({ ocrResult, onConfirm }: Props) {
+export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
   // Por defecto: marcar todos los candidatos detectados (hasta 2).
   // Si el OCR detecta 1, queda 1 marcado.
   // Si detecta 2, quedan los 2 marcados (el usuario puede destildar uno).
@@ -183,15 +185,24 @@ export default function ImeiConfirm({ ocrResult, onConfirm }: Props) {
         </div>
       </div>
 
-      <button
-        className="btn btn-primary"
-        onClick={handleConfirm}
-        disabled={!imei1}
-      >
-        {imei2
-          ? 'Confirmar 2 IMEIs y continuar'
-          : 'Confirmar IMEI y continuar'}
-      </button>
+      <div className="action-group">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onBack}
+        >
+          ← Subir otra imagen
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={handleConfirm}
+          disabled={!imei1}
+        >
+          {imei2
+            ? 'Confirmar 2 IMEIs y continuar'
+            : 'Confirmar IMEI y continuar'}
+        </button>
+      </div>
     </div>
   );
 }

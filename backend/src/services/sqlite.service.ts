@@ -1,4 +1,5 @@
 import db from '../db/schema';
+import type { ResultSet, Row, InValue } from '@libsql/client';
 import {
   Tienda,
   CreateTiendaDto,
@@ -9,136 +10,189 @@ import {
   EquipoFilters,
 } from '../types';
 
+// libSQL devuelve filas tipo Row (array + acceso por nombre). Las convertimos
+// a objetos planos para que Express las serialice con sus claves.
+function mapRows<T>(rs: ResultSet): T[] {
+  return rs.rows.map((row) => rowToObject<T>(row, rs.columns));
+}
+
+function rowToObject<T>(row: Row, columns: string[]): T {
+  const obj: Record<string, unknown> = {};
+  for (const col of columns) obj[col] = (row as any)[col];
+  return obj as T;
+}
+
+function firstRow<T>(rs: ResultSet): T | undefined {
+  if (rs.rows.length === 0) return undefined;
+  return rowToObject<T>(rs.rows[0], rs.columns);
+}
+
 // ─── Tiendas ────────────────────────────────────────────────────────────────
 
-export function getAllTiendas(): Tienda[] {
-  return db.prepare('SELECT * FROM tiendas ORDER BY nombre ASC').all() as Tienda[];
+export async function getAllTiendas(): Promise<Tienda[]> {
+  const rs = await db.execute('SELECT * FROM tiendas ORDER BY nombre ASC');
+  return mapRows<Tienda>(rs);
 }
 
-export function getTiendaById(id: number): Tienda | undefined {
-  return db.prepare('SELECT * FROM tiendas WHERE id = ?').get(id) as Tienda | undefined;
-}
-
-export function createTienda(dto: CreateTiendaDto): Tienda {
-  const stmt = db.prepare(`
-    INSERT INTO tiendas (nombre, telefono, observaciones)
-    VALUES (@nombre, @telefono, @observaciones)
-  `);
-  const result = stmt.run({
-    nombre: dto.nombre,
-    telefono: dto.telefono ?? null,
-    observaciones: dto.observaciones ?? null,
+export async function getTiendaById(id: number): Promise<Tienda | undefined> {
+  const rs = await db.execute({
+    sql: 'SELECT * FROM tiendas WHERE id = ?',
+    args: [id],
   });
-  return getTiendaById(result.lastInsertRowid as number)!;
+  return firstRow<Tienda>(rs);
 }
 
-export function updateTienda(id: number, dto: UpdateTiendaDto): Tienda | undefined {
-  const existing = getTiendaById(id);
+export async function createTienda(dto: CreateTiendaDto): Promise<Tienda> {
+  const rs = await db.execute({
+    sql: `INSERT INTO tiendas (nombre, telefono, observaciones)
+          VALUES (?, ?, ?)`,
+    args: [dto.nombre, dto.telefono ?? null, dto.observaciones ?? null],
+  });
+  return (await getTiendaById(Number(rs.lastInsertRowid)))!;
+}
+
+export async function updateTienda(
+  id: number,
+  dto: UpdateTiendaDto,
+): Promise<Tienda | undefined> {
+  const existing = await getTiendaById(id);
   if (!existing) return undefined;
 
   const updated = { ...existing, ...dto, updatedAt: new Date().toISOString() };
-  db.prepare(`
-    UPDATE tiendas
-    SET nombre = @nombre, telefono = @telefono, observaciones = @observaciones, updatedAt = @updatedAt
-    WHERE id = @id
-  `).run({ ...updated, id });
+  await db.execute({
+    sql: `UPDATE tiendas
+          SET nombre = ?, telefono = ?, observaciones = ?, updatedAt = ?
+          WHERE id = ?`,
+    args: [
+      updated.nombre,
+      updated.telefono ?? null,
+      updated.observaciones ?? null,
+      updated.updatedAt,
+      id,
+    ],
+  });
 
   return getTiendaById(id);
 }
 
 // ─── Equipos ────────────────────────────────────────────────────────────────
 
-export function getAllEquipos(filters: EquipoFilters = {}): Equipo[] {
+export async function getAllEquipos(
+  filters: EquipoFilters = {},
+): Promise<Equipo[]> {
   const conditions: string[] = [];
-  const params: Record<string, string | number> = {};
+  const args: InValue[] = [];
 
   if (filters.imei) {
     // Buscar en ambas columnas (IMEI1 e IMEI2)
-    conditions.push('(imei LIKE @imei OR imei2 LIKE @imei)');
-    params.imei = `%${filters.imei}%`;
+    conditions.push('(imei LIKE ? OR imei2 LIKE ?)');
+    args.push(`%${filters.imei}%`, `%${filters.imei}%`);
   }
   if (filters.cliente) {
-    conditions.push('clienteNombre LIKE @cliente');
-    params.cliente = `%${filters.cliente}%`;
+    conditions.push('clienteNombre LIKE ?');
+    args.push(`%${filters.cliente}%`);
   }
   if (filters.tiendaId) {
-    conditions.push('tiendaId = @tiendaId');
-    params.tiendaId = filters.tiendaId;
+    conditions.push('tiendaId = ?');
+    args.push(filters.tiendaId);
   }
   if (filters.estado) {
-    conditions.push('estado = @estado');
-    params.estado = filters.estado;
+    conditions.push('estado = ?');
+    args.push(filters.estado);
   }
   if (filters.servicio) {
-    conditions.push('servicio LIKE @servicio');
-    params.servicio = `%${filters.servicio}%`;
+    conditions.push('servicio LIKE ?');
+    args.push(`%${filters.servicio}%`);
   }
   if (filters.fechaDesde) {
-    conditions.push('fechaIngreso >= @fechaDesde');
-    params.fechaDesde = filters.fechaDesde;
+    conditions.push('fechaIngreso >= ?');
+    args.push(filters.fechaDesde);
   }
   if (filters.fechaHasta) {
-    conditions.push('fechaIngreso <= @fechaHasta');
-    params.fechaHasta = filters.fechaHasta;
+    conditions.push('fechaIngreso <= ?');
+    args.push(filters.fechaHasta);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-  const sql = `SELECT * FROM equipos ${where} ORDER BY fechaIngreso DESC`;
-  return db.prepare(sql).all(params) as Equipo[];
-}
-
-export function getEquipoById(id: number): Equipo | undefined {
-  return db.prepare('SELECT * FROM equipos WHERE id = ?').get(id) as Equipo | undefined;
-}
-
-export function getEquipoByImei(imei: string): Equipo[] {
-  return db
-    .prepare(
-      'SELECT * FROM equipos WHERE imei = ? OR imei2 = ? ORDER BY fechaIngreso DESC',
-    )
-    .all(imei, imei) as Equipo[];
-}
-
-export function createEquipo(dto: CreateEquipoDto): Equipo {
-  const stmt = db.prepare(`
-    INSERT INTO equipos
-      (fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
-       tiendaId, servicio, precio, observaciones, estado, imagenRuta)
-    VALUES
-      (@fechaIngreso, @imei, @imei2, @modelo, @clienteNombre, @clienteTelefono,
-       @tiendaId, @servicio, @precio, @observaciones, @estado, @imagenRuta)
-  `);
-  const result = stmt.run({
-    fechaIngreso: dto.fechaIngreso,
-    imei: dto.imei,
-    imei2: dto.imei2 ?? null,
-    modelo: dto.modelo,
-    clienteNombre: dto.clienteNombre,
-    clienteTelefono: dto.clienteTelefono ?? null,
-    tiendaId: dto.tiendaId ?? null,
-    servicio: dto.servicio,
-    precio: dto.precio,
-    observaciones: dto.observaciones ?? null,
-    estado: dto.estado,
-    imagenRuta: dto.imagenRuta ?? null,
+  const rs = await db.execute({
+    sql: `SELECT * FROM equipos ${where} ORDER BY fechaIngreso DESC`,
+    args,
   });
-  return getEquipoById(result.lastInsertRowid as number)!;
+  return mapRows<Equipo>(rs);
 }
 
-export function updateEquipo(id: number, dto: UpdateEquipoDto): Equipo | undefined {
-  const existing = getEquipoById(id);
+export async function getEquipoById(id: number): Promise<Equipo | undefined> {
+  const rs = await db.execute({
+    sql: 'SELECT * FROM equipos WHERE id = ?',
+    args: [id],
+  });
+  return firstRow<Equipo>(rs);
+}
+
+export async function getEquipoByImei(imei: string): Promise<Equipo[]> {
+  const rs = await db.execute({
+    sql: 'SELECT * FROM equipos WHERE imei = ? OR imei2 = ? ORDER BY fechaIngreso DESC',
+    args: [imei, imei],
+  });
+  return mapRows<Equipo>(rs);
+}
+
+export async function createEquipo(dto: CreateEquipoDto): Promise<Equipo> {
+  const rs = await db.execute({
+    sql: `INSERT INTO equipos
+            (fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
+             tiendaId, servicio, precio, observaciones, estado, imagenRuta)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      dto.fechaIngreso,
+      dto.imei,
+      dto.imei2 ?? null,
+      dto.modelo,
+      dto.clienteNombre,
+      dto.clienteTelefono ?? null,
+      dto.tiendaId ?? null,
+      dto.servicio,
+      dto.precio,
+      dto.observaciones ?? null,
+      dto.estado,
+      dto.imagenRuta ?? null,
+    ],
+  });
+  return (await getEquipoById(Number(rs.lastInsertRowid)))!;
+}
+
+export async function updateEquipo(
+  id: number,
+  dto: UpdateEquipoDto,
+): Promise<Equipo | undefined> {
+  const existing = await getEquipoById(id);
   if (!existing) return undefined;
 
   const updated = { ...existing, ...dto, updatedAt: new Date().toISOString() };
-  db.prepare(`
-    UPDATE equipos
-    SET fechaIngreso = @fechaIngreso, imei = @imei, imei2 = @imei2, modelo = @modelo,
-        clienteNombre = @clienteNombre, clienteTelefono = @clienteTelefono,
-        tiendaId = @tiendaId, servicio = @servicio, precio = @precio,
-        observaciones = @observaciones, estado = @estado,
-        imagenRuta = @imagenRuta, updatedAt = @updatedAt
-    WHERE id = @id
-  `).run({ ...updated, id });
+  await db.execute({
+    sql: `UPDATE equipos
+          SET fechaIngreso = ?, imei = ?, imei2 = ?, modelo = ?,
+              clienteNombre = ?, clienteTelefono = ?, tiendaId = ?,
+              servicio = ?, precio = ?, observaciones = ?, estado = ?,
+              imagenRuta = ?, updatedAt = ?
+          WHERE id = ?`,
+    args: [
+      updated.fechaIngreso,
+      updated.imei,
+      updated.imei2 ?? null,
+      updated.modelo,
+      updated.clienteNombre,
+      updated.clienteTelefono ?? null,
+      updated.tiendaId ?? null,
+      updated.servicio,
+      updated.precio,
+      updated.observaciones ?? null,
+      updated.estado,
+      updated.imagenRuta ?? null,
+      updated.updatedAt,
+      id,
+    ],
+  });
 
   return getEquipoById(id);
 }

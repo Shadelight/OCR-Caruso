@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { upload } from '../middleware/upload.middleware';
 import { extractImeiFromImage } from '../services/ocr.service';
+import { saveImage } from '../services/storage.service';
 
 const router = Router();
 
@@ -11,11 +12,16 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
   }
 
   try {
-    const result = await extractImeiFromImage(req.file.path);
+    const result = await extractImeiFromImage(req.file.buffer);
+    const imagenRuta = await saveImage(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+    );
     res.json({
       candidatos: result.candidatos,
       textoCompleto: result.textoCompleto,
-      imagenRuta: req.file.filename,
+      imagenRuta,
     });
   } catch (err) {
     console.error('[OCR Error]', err);

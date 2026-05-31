@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { Equipo, Tienda, OcrResponse } from '../types';
 
-const api = axios.create({ baseURL: '/api' });
+// En dev queda vacío y usa el proxy de Vite (/api → localhost:3001).
+// En producción, VITE_API_URL apunta al backend (ej: https://xxx.onrender.com/api).
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 
 // ─── OCR ────────────────────────────────────────────────────────────────────
 

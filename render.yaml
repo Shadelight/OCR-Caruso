@@ -1,0 +1,39 @@
+# Blueprint de Render para el backend (https://render.com).
+# Importá este repo en Render → "New > Blueprint" y completá las variables
+# marcadas con sync:false en el dashboard (son secretas, no van al repo).
+services:
+  - type: web
+    name: ocr-caruso-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      # URL del frontend en Vercel (para CORS)
+      - key: FRONTEND_ORIGIN
+        sync: false
+      # Turso (base de datos)
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      # Supabase Storage (imágenes)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: ocr-imagenes
+      # Google Sheets (opcional)
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
+      - key: GOOGLE_SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_SHEET_NAME
+        value: Ingresos

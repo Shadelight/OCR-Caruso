@@ -7,9 +7,11 @@ interface Props {
   imei2?: string | null;
   imagenRuta: string;
   onSaved: () => void;
+  /** Volver al paso de confirmar IMEI. */
+  onBack?: () => void;
 }
 
-export default function EquipoForm({ imei, imei2, imagenRuta, onSaved }: Props) {
+export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }: Props) {
   const now = new Date();
   const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
     .toISOString()
@@ -142,9 +144,21 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved }: Props) 
 
       {error && <p className="error-msg">{error}</p>}
 
-      <button className="btn btn-primary" type="submit" disabled={saving}>
-        {saving ? 'Guardando...' : 'Guardar equipo'}
-      </button>
+      <div className="action-group">
+        {onBack && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onBack}
+            disabled={saving}
+          >
+            ← Volver
+          </button>
+        )}
+        <button className="btn btn-primary" type="submit" disabled={saving}>
+          {saving ? 'Guardando...' : 'Guardar equipo'}
+        </button>
+      </div>
     </form>
   );
 }
