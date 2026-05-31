@@ -11,7 +11,7 @@ export default function App() {
       <div className="layout">
         <nav className="sidebar">
           <div className="sidebar-brand">
-            <span className="brand-icon">CT</span>
+            <span className="brand-icon">📱</span>
             <span>
               <span className="brand-name">Caruso Tech</span>
               <span className="brand-sub">OCR intake</span>
@@ -20,15 +20,15 @@ export default function App() {
 
           <div className="nav-links">
             <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              <span className="nav-icon">+</span>
+              <span className="nav-icon">➕</span>
               <span className="nav-text">Nuevo ingreso</span>
             </NavLink>
             <NavLink to="/equipos" className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              <span className="nav-icon">H</span>
+              <span className="nav-icon">🕘</span>
               <span className="nav-text">Historial</span>
             </NavLink>
             <NavLink to="/tiendas" className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-              <span className="nav-icon">T</span>
+              <span className="nav-icon">🏪</span>
               <span className="nav-text">Tiendas</span>
             </NavLink>
           </div>

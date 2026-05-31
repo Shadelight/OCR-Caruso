@@ -112,6 +112,7 @@ button, input, select, textarea { font: inherit; }
 .main-content {
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
   padding: 24px 16px calc(var(--bottomnav-h) + 36px);
 }
 
@@ -756,7 +757,8 @@ textarea.input { resize: vertical; }
 
   .main-content {
     flex: 1;
-    margin-left: calc(var(--sidebar-w) + 18px);
+    margin-left: max(calc(var(--sidebar-w) + 18px), calc((100vw - 1200px) / 2));
+    margin-right: auto;
     padding: 42px 36px 42px;
   }
 
@@ -770,7 +772,7 @@ textarea.input { resize: vertical; }
 
   .app-version {
     left: 34px;
-    bottom: 28px;
+    bottom: 196px;
     background: transparent;
     border: 0;
     padding: 0;
