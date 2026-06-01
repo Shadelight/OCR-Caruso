@@ -47,7 +47,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const {
     fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
-    tiendaId, servicio, precio, observaciones, estado, imagenRuta,
+    tiendaId, servicio, precio, costoPieza, manoDeObra, otrosCostos,
+    observaciones, estado, imagenRuta,
   } = req.body;
 
   if (!imei || !modelo || !clienteNombre || !servicio || !estado) {
@@ -66,6 +67,9 @@ router.post('/', async (req: Request, res: Response) => {
       tiendaId: tiendaId ? parseInt(tiendaId, 10) : undefined,
       servicio,
       precio: parseFloat(precio) || 0,
+      costoPieza: parseFloat(costoPieza) || 0,
+      manoDeObra: parseFloat(manoDeObra) || 0,
+      otrosCostos: parseFloat(otrosCostos) || 0,
       observaciones,
       estado,
       imagenRuta,

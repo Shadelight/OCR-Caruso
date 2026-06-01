@@ -44,6 +44,9 @@ export interface Equipo {
   tiendaId: number | null;
   servicio: string;
   precio: number;
+  costoPieza: number;
+  manoDeObra: number;
+  otrosCostos: number;
   observaciones: string | null;
   estado: EstadoEquipo;
   imagenRuta: string | null;

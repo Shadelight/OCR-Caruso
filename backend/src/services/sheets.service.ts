@@ -26,6 +26,11 @@ export async function appendEquipoToSheet(equipo: Equipo, tiendaNombre?: string)
 
   const sheets = google.sheets({ version: 'v4', auth });
 
+  // Ganancia = total cobrado − (costo pieza + otros costos). La mano de obra
+  // no se resta (es ganancia del trabajo, no un costo).
+  const ganancia =
+    (equipo.precio ?? 0) - (equipo.costoPieza ?? 0) - (equipo.otrosCostos ?? 0);
+
   const row = [
     equipo.fechaIngreso,
     equipo.imei,
@@ -38,6 +43,11 @@ export async function appendEquipoToSheet(equipo: Equipo, tiendaNombre?: string)
     equipo.precio,
     equipo.estado,
     equipo.observaciones ?? '',
+    // Columnas financieras (agregadas al final para no romper sheets viejas)
+    equipo.costoPieza ?? 0,
+    equipo.manoDeObra ?? 0,
+    equipo.otrosCostos ?? 0,
+    ganancia,
   ];
 
   await sheets.spreadsheets.values.append({
@@ -61,7 +71,7 @@ export async function ensureSheetHeaders(): Promise<void> {
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A1:K1`,
+    range: `${sheetName}!A1:O1`,
   });
 
   if (!res.data.values || res.data.values.length === 0) {
@@ -72,7 +82,8 @@ export async function ensureSheetHeaders(): Promise<void> {
       requestBody: {
         values: [[
           'FechaHora', 'IMEI 1', 'IMEI 2', 'Modelo', 'Cliente', 'Telefono',
-          'Tienda', 'Servicio', 'Precio', 'Estado', 'Observaciones',
+          'Tienda', 'Servicio', 'Total cobrado', 'Estado', 'Observaciones',
+          'Costo pieza', 'Mano de obra', 'Otros costos', 'Ganancia',
         ]],
       },
     });

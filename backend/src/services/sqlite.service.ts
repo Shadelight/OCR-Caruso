@@ -141,8 +141,9 @@ export async function createEquipo(dto: CreateEquipoDto): Promise<Equipo> {
   const rs = await db.execute({
     sql: `INSERT INTO equipos
             (fechaIngreso, imei, imei2, modelo, clienteNombre, clienteTelefono,
-             tiendaId, servicio, precio, observaciones, estado, imagenRuta)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             tiendaId, servicio, precio, costoPieza, manoDeObra, otrosCostos,
+             observaciones, estado, imagenRuta)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       dto.fechaIngreso,
       dto.imei,
@@ -153,6 +154,9 @@ export async function createEquipo(dto: CreateEquipoDto): Promise<Equipo> {
       dto.tiendaId ?? null,
       dto.servicio,
       dto.precio,
+      dto.costoPieza ?? 0,
+      dto.manoDeObra ?? 0,
+      dto.otrosCostos ?? 0,
       dto.observaciones ?? null,
       dto.estado,
       dto.imagenRuta ?? null,
@@ -173,7 +177,8 @@ export async function updateEquipo(
     sql: `UPDATE equipos
           SET fechaIngreso = ?, imei = ?, imei2 = ?, modelo = ?,
               clienteNombre = ?, clienteTelefono = ?, tiendaId = ?,
-              servicio = ?, precio = ?, observaciones = ?, estado = ?,
+              servicio = ?, precio = ?, costoPieza = ?, manoDeObra = ?,
+              otrosCostos = ?, observaciones = ?, estado = ?,
               imagenRuta = ?, updatedAt = ?
           WHERE id = ?`,
     args: [
@@ -186,6 +191,9 @@ export async function updateEquipo(
       updated.tiendaId ?? null,
       updated.servicio,
       updated.precio,
+      updated.costoPieza ?? 0,
+      updated.manoDeObra ?? 0,
+      updated.otrosCostos ?? 0,
       updated.observaciones ?? null,
       updated.estado,
       updated.imagenRuta ?? null,

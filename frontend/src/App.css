@@ -313,6 +313,36 @@ button, input, select, textarea { font: inherit; }
 /* Form de alta más compacto: menos aire vertical sin achicar inputs (44px). */
 .equipo-form { gap: 13px; }
 
+/* Subtítulo de sección dentro del formulario. */
+.form-section {
+  margin-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+}
+
+/* Resultado: ganancia derivada como badge financiero (no input). */
+.ganancia-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+}
+.ganancia-card--pos { background: var(--success-soft); border-color: rgba(22, 163, 74, 0.22); }
+.ganancia-card--neg { background: #fef2f2; border-color: rgba(220, 38, 38, 0.22); }
+.ganancia-card__label { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+.ganancia-card__value { font-size: clamp(20px, 6vw, 26px); font-weight: 850; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.ganancia-card--pos .ganancia-card__value { color: var(--success); }
+.ganancia-card--neg .ganancia-card__value { color: var(--danger); }
+
 .input {
   width: 100%;
   min-height: 44px;

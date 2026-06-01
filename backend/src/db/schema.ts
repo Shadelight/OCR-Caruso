@@ -51,6 +51,9 @@ export async function initDb(): Promise<void> {
       tiendaId        INTEGER REFERENCES tiendas(id) ON DELETE SET NULL,
       servicio        TEXT    NOT NULL,
       precio          REAL    NOT NULL DEFAULT 0,
+      costoPieza      REAL    NOT NULL DEFAULT 0,
+      manoDeObra      REAL    NOT NULL DEFAULT 0,
+      otrosCostos     REAL    NOT NULL DEFAULT 0,
       observaciones   TEXT,
       estado          TEXT    NOT NULL DEFAULT 'RECIBIDO',
       imagenRuta      TEXT,
@@ -59,16 +62,26 @@ export async function initDb(): Promise<void> {
     );
   `);
 
-  // ─── Migración suave: agregar imei2 si la base venía de la versión anterior ──
+  // ─── Migración suave: agregar columnas nuevas a bases preexistentes ──────────
   try {
     const cols = await db.execute(`PRAGMA table_info(equipos)`);
-    const tieneImei2 = cols.rows.some((c) => (c as any).name === 'imei2');
-    if (!tieneImei2) {
-      await db.execute(`ALTER TABLE equipos ADD COLUMN imei2 TEXT`);
-      console.log('[DB] Migración aplicada: equipos.imei2');
+    const existentes = new Set(cols.rows.map((c) => (c as any).name as string));
+
+    const nuevas: Array<{ name: string; ddl: string }> = [
+      { name: 'imei2', ddl: 'ADD COLUMN imei2 TEXT' },
+      { name: 'costoPieza', ddl: 'ADD COLUMN costoPieza REAL NOT NULL DEFAULT 0' },
+      { name: 'manoDeObra', ddl: 'ADD COLUMN manoDeObra REAL NOT NULL DEFAULT 0' },
+      { name: 'otrosCostos', ddl: 'ADD COLUMN otrosCostos REAL NOT NULL DEFAULT 0' },
+    ];
+
+    for (const col of nuevas) {
+      if (!existentes.has(col.name)) {
+        await db.execute(`ALTER TABLE equipos ${col.ddl}`);
+        console.log(`[DB] Migración aplicada: equipos.${col.name}`);
+      }
     }
   } catch (err) {
-    console.warn('[DB] Error en migración imei2:', err);
+    console.warn('[DB] Error en migración de columnas:', err);
   }
 }
 

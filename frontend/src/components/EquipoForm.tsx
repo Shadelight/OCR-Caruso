@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createEquipo, getTiendas } from '../api/client';
 import { EstadoEquipo, ESTADOS, ESTADO_LABELS, Tienda } from '../types';
 import ModeloPicker from './ModeloPicker';
@@ -10,6 +10,10 @@ interface Props {
   onSaved: () => void;
   onBack?: () => void;
 }
+
+const num = (s: string): number => parseFloat(s) || 0;
+const fmtBs = (n: number): string =>
+  `Bs. ${Math.abs(n).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }: Props) {
   const now = new Date();
@@ -28,6 +32,9 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
     clienteTelefono: '',
     tiendaId: '',
     servicio: '',
+    costoPieza: '',
+    manoDeObra: '',
+    otrosCostos: '',
     precio: '',
     observaciones: '',
     estado: 'RECIBIDO' as EstadoEquipo,
@@ -39,6 +46,13 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  // Ganancia = total cobrado − (costo pieza + otros costos). La mano de obra
+  // no se resta: es lo que ganás por el trabajo.
+  const ganancia = useMemo(
+    () => num(form.precio) - num(form.costoPieza) - num(form.otrosCostos),
+    [form.precio, form.costoPieza, form.otrosCostos],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +68,10 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         imei,
         imei2: imei2 ?? null,
         imagenRuta,
-        precio: parseFloat(form.precio) || 0,
+        precio: num(form.precio),
+        costoPieza: num(form.costoPieza),
+        manoDeObra: num(form.manoDeObra),
+        otrosCostos: num(form.otrosCostos),
         tiendaId: form.tiendaId ? parseInt(form.tiendaId, 10) : undefined,
       });
       onSaved();
@@ -65,10 +82,32 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
     }
   };
 
+  const money = (field: 'costoPieza' | 'manoDeObra' | 'otrosCostos' | 'precio', label: string) => (
+    <div className="field">
+      <label>{label}</label>
+      <div className="input-prefix">
+        <span className="input-prefix__tag">Bs.</span>
+        <input
+          className="input"
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+          value={form[field]}
+          onChange={set(field)}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <form className="card equipo-form" onSubmit={handleSubmit}>
       <h2 className="card-title">Registrar equipo</h2>
       <p className="card-sub">Completa los datos del servicio antes de sincronizar.</p>
+
+      {/* ── Datos técnicos ─────────────────────────────────────────────── */}
+      <span className="form-section">Datos técnicos</span>
 
       <div className="imei-badges">
         <div className="imei-badge">
@@ -107,6 +146,9 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         </div>
       </div>
 
+      {/* ── Cliente ────────────────────────────────────────────────────── */}
+      <span className="form-section">Cliente</span>
+
       <div className="field-row">
         <div className="field">
           <label>Nombre del cliente *</label>
@@ -118,42 +160,48 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         </div>
       </div>
 
+      {/* ── Servicio ───────────────────────────────────────────────────── */}
+      <span className="form-section">Servicio</span>
+
       <div className="field-row">
         <div className="field">
           <label>Servicio *</label>
           <input className="input" placeholder="Ej: Cambio de pantalla" value={form.servicio} onChange={set('servicio')} />
         </div>
         <div className="field">
-          <label>Precio</label>
-          <div className="input-prefix">
-            <span className="input-prefix__tag">Bs.</span>
-            <input
-              className="input"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={form.precio}
-              onChange={set('precio')}
-            />
-          </div>
+          <label>Tienda asociada</label>
+          <select className="input" value={form.tiendaId} onChange={set('tiendaId')}>
+            <option value="">Sin tienda</option>
+            {tiendas.map((t) => (
+              <option key={t.id} value={t.id}>{t.nombre}</option>
+            ))}
+          </select>
         </div>
-      </div>
-
-      <div className="field">
-        <label>Tienda asociada</label>
-        <select className="input" value={form.tiendaId} onChange={set('tiendaId')}>
-          <option value="">Sin tienda</option>
-          {tiendas.map((t) => (
-            <option key={t.id} value={t.id}>{t.nombre}</option>
-          ))}
-        </select>
       </div>
 
       <div className="field">
         <label>Observaciones</label>
         <textarea className="input" rows={3} placeholder="Estado fisico, accesorios, notas..." value={form.observaciones} onChange={set('observaciones')} />
+      </div>
+
+      {/* ── Costos y cobro ─────────────────────────────────────────────── */}
+      <span className="form-section">💰 Costos y cobro</span>
+
+      <div className="field-row">
+        {money('costoPieza', 'Costo de pieza')}
+        {money('manoDeObra', 'Mano de obra')}
+      </div>
+      <div className="field-row">
+        {money('otrosCostos', 'Otros costos')}
+        {money('precio', 'Total cobrado')}
+      </div>
+
+      {/* ── Resultado ──────────────────────────────────────────────────── */}
+      <div className={`ganancia-card ${ganancia < 0 ? 'ganancia-card--neg' : 'ganancia-card--pos'}`}>
+        <span className="ganancia-card__label">Ganancia estimada</span>
+        <strong className="ganancia-card__value">
+          {ganancia < 0 ? '− ' : '+ '}{fmtBs(ganancia)}
+        </strong>
       </div>
 
       {error && <p className="error-msg">{error}</p>}
