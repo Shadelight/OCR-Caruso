@@ -82,9 +82,9 @@ export default function Home() {
     <div className="page">
       <section className="hero-card">
         <span className="hero-kicker">OCR automatico</span>
-        <h1>Ingreso premium de equipos por IMEI.</h1>
+        <h1>Ingreso de equipos por IMEI</h1>
         <p className="page-sub">
-          Sube una foto, confirma los IMEIs detectados y registra el servicio sin friccion.
+          Foto → IMEI detectado → registro. Sin friccion.
         </p>
         <div className="hero-metrics" aria-label="Estado del sistema">
           <div className="hero-metric">

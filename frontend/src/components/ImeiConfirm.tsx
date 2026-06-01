@@ -19,6 +19,9 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
   );
   const [manualExtra, setManualExtra] = useState('');
   const [manualList, setManualList] = useState<string[]>([]);
+  // Si no se detectó nada, el manual arranca abierto; si el OCR funcionó,
+  // queda colapsado (el 90% de las veces no hace falta tocarlo).
+  const [showManual, setShowManual] = useState(detectados.length === 0);
 
   const toggle = (imei: string) => {
     setSelected((prev) => {
@@ -87,9 +90,6 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
           <span className="ocr-detected">
             ✓ {detectados.length} {detectados.length === 1 ? 'IMEI detectado' : 'IMEIs detectados'} automáticamente
           </span>
-          <p className="card-sub">
-            OCR completo. Marca los IMEIs correctos antes de registrar el equipo.
-          </p>
           <div className="candidates-list">
             {detectados.map((c, idx) => (
               <label
@@ -100,13 +100,15 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
               >
                 <input
                   type="checkbox"
+                  className="candidate-input"
                   checked={selected.has(c)}
                   onChange={() => toggle(c)}
                 />
-                <span className="candidate-label">
-                  IMEI {idx + 1}
+                <span className="candidate-check" aria-hidden="true">✓</span>
+                <span className="candidate-body">
+                  <span className="candidate-label">IMEI {idx + 1}</span>
+                  <span className="candidate-imei">{c}</span>
                 </span>
-                <span className="candidate-imei">{c}</span>
               </label>
             ))}
           </div>
@@ -124,11 +126,15 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
             >
               <input
                 type="checkbox"
+                className="candidate-input"
                 checked={selected.has(c)}
                 onChange={() => toggle(c)}
               />
-              <span className="candidate-label">Manual</span>
-              <span className="candidate-imei">{c}</span>
+              <span className="candidate-check" aria-hidden="true">✓</span>
+              <span className="candidate-body">
+                <span className="candidate-label">Manual</span>
+                <span className="candidate-imei">{c}</span>
+              </span>
               <button
                 type="button"
                 className="btn btn-xs btn-secondary"
@@ -144,55 +150,52 @@ export default function ImeiConfirm({ ocrResult, onConfirm, onBack }: Props) {
         </div>
       )}
 
-      <div className="field">
-        <label>Agregar IMEI manualmente</label>
-        <div className="inline-form">
-          <input
-            type="text"
-            placeholder="15 digitos"
-            maxLength={15}
-            value={manualExtra}
-            onChange={(e) => setManualExtra(e.target.value.replace(/\D/g, ''))}
-            className="input"
-          />
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={addManual}
-            disabled={manualExtra.length !== 15}
-          >
-            Agregar
-          </button>
+      {showManual ? (
+        <div className="field">
+          <label>Agregar IMEI manualmente</label>
+          <div className="inline-form">
+            <input
+              type="text"
+              placeholder="15 digitos"
+              maxLength={15}
+              value={manualExtra}
+              onChange={(e) => setManualExtra(e.target.value.replace(/\D/g, ''))}
+              className="input"
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={addManual}
+              disabled={manualExtra.length !== 15}
+            >
+              Agregar
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="imei-preview">
-        <div>
-          <span>IMEI 1</span>
-          <strong>{imei1 ?? '-'}</strong>
-        </div>
-        <div>
-          <span>IMEI 2</span>
-          <strong>{imei2 ?? '-'}</strong>
-        </div>
-      </div>
+      ) : (
+        <button
+          type="button"
+          className="btn-link-add"
+          onClick={() => setShowManual(true)}
+        >
+          + Agregar IMEI manualmente
+        </button>
+      )}
 
       <div className="action-group">
         <button
           type="button"
-          className="btn btn-secondary"
+          className="btn btn-ghost"
           onClick={onBack}
         >
-          Subir otra imagen
+          ← Subir otra
         </button>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary btn-lg"
           onClick={handleConfirm}
           disabled={!imei1}
         >
-          {imei2
-            ? 'Confirmar 2 IMEIs y continuar'
-            : 'Confirmar IMEI y continuar'}
+          {imei2 ? 'Confirmar 2 IMEIs' : 'Confirmar y continuar'}
         </button>
       </div>
     </div>

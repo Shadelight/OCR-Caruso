@@ -70,20 +70,17 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
       <h2 className="card-title">Registrar equipo</h2>
       <p className="card-sub">Completa los datos del servicio antes de sincronizar.</p>
 
-      <div className="field-row">
-        <div className="field">
-          <label>IMEI 1</label>
-          <input className="input" value={imei} readOnly />
+      <div className="imei-badges">
+        <div className="imei-badge">
+          <span className="imei-badge__label">IMEI 1</span>
+          <span className="imei-badge__value">{imei}</span>
         </div>
-        <div className="field">
-          <label>IMEI 2</label>
-          <input
-            className="input"
-            value={imei2 ?? ''}
-            readOnly
-            placeholder="-"
-          />
-        </div>
+        {imei2 && (
+          <div className="imei-badge">
+            <span className="imei-badge__label">IMEI 2</span>
+            <span className="imei-badge__value">{imei2}</span>
+          </div>
+        )}
       </div>
 
       <div className="field">
@@ -165,15 +162,15 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         {onBack && (
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-ghost"
             onClick={onBack}
             disabled={saving}
           >
-            Volver
+            ← Volver
           </button>
         )}
-        <button className="btn btn-primary" type="submit" disabled={saving}>
-          {saving ? 'Guardando...' : 'Guardar equipo'}
+        <button className="btn btn-primary btn-lg" type="submit" disabled={saving}>
+          {saving ? 'Guardando...' : 'Registrar equipo'}
         </button>
       </div>
     </form>

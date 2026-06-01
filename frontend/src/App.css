@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f5f7fb;
+  --bg: #eef2f7;
   --surface: #ffffff;
   --surface-soft: #f8fbff;
   --border: #e7edf5;
@@ -66,17 +66,12 @@ button, input, select, textarea { font: inherit; }
   width: 42px;
   height: 42px;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  border-radius: 14px;
-  color: #fff;
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.25);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
+.brand-icon img { width: 100%; height: 100%; display: block; }
 
 .brand-name, .brand-sub { display: block; }
 .brand-name { color: #101828; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
@@ -183,8 +178,8 @@ button, input, select, textarea { font: inherit; }
   text-transform: uppercase;
 }
 
-.hero-card h1 { max-width: 680px; font-size: clamp(28px, 6vw, 52px); line-height: 1; font-weight: 760; letter-spacing: -0.055em; }
-.hero-card .page-sub { margin-top: 8px; color: rgba(255, 255, 255, 0.74); font-size: 15px; }
+.hero-card h1 { max-width: 680px; font-size: clamp(26px, 5vw, 40px); line-height: 1.04; font-weight: 760; letter-spacing: -0.05em; }
+.hero-card .page-sub { margin-top: 7px; color: rgba(255, 255, 255, 0.74); font-size: 14px; }
 
 .hero-metrics {
   display: grid;
@@ -292,9 +287,11 @@ button, input, select, textarea { font: inherit; }
 .step--active .step-num { color: var(--primary); background: #fff; }
 .step-label { font-size: 13px; font-weight: 800; }
 
-.field { display: flex; flex-direction: column; gap: 7px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12px; font-weight: 800; color: #475467; text-transform: uppercase; letter-spacing: 0.055em; }
-.field-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.field-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+/* Form de alta más compacto: menos aire vertical sin achicar inputs (44px). */
+.equipo-form { gap: 13px; }
 
 .input {
   width: 100%;
@@ -312,6 +309,33 @@ button, input, select, textarea { font: inherit; }
 .input[readonly] { color: #344054; background: var(--surface-soft); }
 .input--sm { min-height: 36px; padding: 6px 10px; font-size: 14px; border-radius: 10px; }
 textarea.input { resize: vertical; }
+
+/* Select nativo estilizado: flecha custom, sin dependencias. */
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 42px;
+  cursor: pointer;
+}
+
+/* IMEIs confirmados: panel readonly tipo badge (no parecen editables). */
+.imei-badges { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.imei-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  border: 1px solid rgba(37, 99, 235, 0.16);
+}
+.imei-badge__label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); flex-shrink: 0; }
+.imei-badge__value { font-family: "SFMono-Regular", Consolas, monospace; font-size: clamp(14px, 4vw, 17px); letter-spacing: 0.04em; color: #111827; word-break: break-all; text-align: right; }
+@media (min-width: 600px) { .imei-badges { grid-template-columns: 1fr 1fr; } }
 
 .input-prefix { position: relative; display: flex; align-items: center; }
 .input-prefix__tag {
@@ -349,7 +373,23 @@ textarea.input { resize: vertical; }
 .btn-secondary:hover:not(:disabled) { background: #eaf0f7; }
 .btn-sm { min-height: 38px; padding: 8px 13px; font-size: 13px; border-radius: 12px; }
 .btn-xs { min-height: 32px; padding: 6px 10px; font-size: 12px; border-radius: 10px; }
-.action-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-lg { min-height: 52px; padding: 13px 22px; font-size: 16px; flex: 1; }
+.btn-ghost { color: var(--text-muted); background: transparent; border: 1px solid transparent; box-shadow: none; }
+.btn-ghost:hover:not(:disabled) { background: rgba(15, 23, 42, 0.05); color: var(--text); }
+.action-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* Link para desplegar el alta manual de IMEI (colapsado por defecto). */
+.btn-link-add {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.btn-link-add:hover { text-decoration: underline; }
 
 /* ── Confirmación de IMEIs ─────────────────────────────────────────────── */
 .ocr-detected {
@@ -385,7 +425,7 @@ textarea.input { resize: vertical; }
   background: rgba(37, 99, 235, 0.05);
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
-.candidate-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
+.candidate-item input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
 .candidate-label {
   flex-shrink: 0;
   font-size: 11px;
@@ -701,10 +741,26 @@ textarea.input { resize: vertical; }
   transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
 }
 
-.candidate-item:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06); }
-.candidate-item--selected { border-color: rgba(37, 99, 235, 0.45); background: linear-gradient(180deg, #fff, var(--primary-soft)); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06); }
-.candidate-imei { flex: 1; color: #111827; font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; letter-spacing: 0.07em; word-break: break-all; }
-.candidate-label { min-width: 72px; color: var(--primary); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; }
+.candidate-item:hover { border-color: rgba(37, 99, 235, 0.4); }
+.candidate-item--selected { border-color: var(--primary); background: var(--primary-soft); box-shadow: none; }
+.candidate-check {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  color: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.candidate-item--selected .candidate-check { background: var(--primary); border-color: var(--primary); color: #fff; }
+.candidate-body { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.candidate-imei { color: #111827; font-family: "SFMono-Regular", Consolas, monospace; font-size: clamp(15px, 4.2vw, 18px); letter-spacing: 0.05em; word-break: break-all; text-align: right; }
+.candidate-label { color: var(--primary); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
 
 .inline-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .inline-form .input { flex: 1; min-width: 180px; }

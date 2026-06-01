@@ -11,7 +11,7 @@ export default function App() {
       <div className="layout">
         <nav className="sidebar">
           <div className="sidebar-brand">
-            <span className="brand-icon">📱</span>
+            <span className="brand-icon"><img src="/icon.svg" alt="Caruso Tech" /></span>
             <span>
               <span className="brand-name">Caruso Tech</span>
               <span className="brand-sub">OCR intake</span>
