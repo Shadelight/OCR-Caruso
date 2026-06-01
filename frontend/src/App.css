@@ -338,10 +338,15 @@ button, input, select, textarea { font: inherit; }
 }
 .ganancia-card--pos { background: var(--success-soft); border-color: rgba(22, 163, 74, 0.22); }
 .ganancia-card--neg { background: #fef2f2; border-color: rgba(220, 38, 38, 0.22); }
+.ganancia-card--zero { background: var(--surface-soft); border-color: var(--border); }
 .ganancia-card__label { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
 .ganancia-card__value { font-size: clamp(20px, 6vw, 26px); font-weight: 850; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .ganancia-card--pos .ganancia-card__value { color: var(--success); }
 .ganancia-card--neg .ganancia-card__value { color: var(--danger); }
+.ganancia-card--zero .ganancia-card__value { color: var(--text-muted); }
+
+/* Texto de ayuda bajo un campo. */
+.field-hint { margin-top: -4px; font-size: 12px; color: var(--text-muted); }
 
 .input {
   width: 100%;
@@ -880,6 +885,7 @@ select.input {
 .cell-sub { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
 .gan-pos { color: var(--success) !important; }
 .gan-neg { color: var(--danger) !important; }
+.gan-zero { color: var(--text-muted) !important; }
 
 /* Cabecera derecha de la card: badge de estado + menú de acciones. */
 .card-head-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }

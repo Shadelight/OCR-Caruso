@@ -184,23 +184,27 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
         <textarea className="input" rows={3} placeholder="Estado fisico, accesorios, notas..." value={form.observaciones} onChange={set('observaciones')} />
       </div>
 
-      {/* ── Costos y cobro ─────────────────────────────────────────────── */}
-      <span className="form-section">💰 Costos y cobro</span>
-
+      {/* ── Costos (sí restan de la ganancia) ──────────────────────────── */}
+      <span className="form-section">💰 Costos</span>
       <div className="field-row">
         {money('costoPieza', 'Costo de pieza')}
-        {money('manoDeObra', 'Mano de obra')}
-      </div>
-      <div className="field-row">
         {money('otrosCostos', 'Otros costos')}
-        {money('precio', 'Total cobrado')}
       </div>
 
+      {/* ── Mano de obra (informativa, NO resta) ───────────────────────── */}
+      <span className="form-section">🛠 Mano de obra</span>
+      {money('manoDeObra', 'Mano de obra')}
+      <p className="field-hint">Es tu cobro por el trabajo (informativo): no se resta de la ganancia.</p>
+
+      {/* ── Cobro ──────────────────────────────────────────────────────── */}
+      <span className="form-section">💵 Cobro</span>
+      {money('precio', 'Total cobrado')}
+
       {/* ── Resultado ──────────────────────────────────────────────────── */}
-      <div className={`ganancia-card ${ganancia < 0 ? 'ganancia-card--neg' : 'ganancia-card--pos'}`}>
+      <div className={`ganancia-card ganancia-card--${ganancia > 0 ? 'pos' : ganancia < 0 ? 'neg' : 'zero'}`}>
         <span className="ganancia-card__label">Ganancia estimada</span>
         <strong className="ganancia-card__value">
-          {ganancia < 0 ? '− ' : '+ '}{fmtBs(ganancia)}
+          {ganancia > 0 ? '+ ' : ganancia < 0 ? '− ' : ''}{fmtBs(ganancia)}
         </strong>
       </div>
 

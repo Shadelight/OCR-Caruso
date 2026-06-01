@@ -143,8 +143,8 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
               </div>
               <div>
                 <span>Ganancia</span>
-                <strong className={g < 0 ? 'gan-neg' : 'gan-pos'}>
-                  {g < 0 ? '− ' : '+ '}{fmtBs(Math.abs(g))}
+                <strong className={g > 0 ? 'gan-pos' : g < 0 ? 'gan-neg' : 'gan-zero'}>
+                  {g > 0 ? '+ ' : g < 0 ? '− ' : ''}{fmtBs(Math.abs(g))}
                 </strong>
               </div>
               <div>
