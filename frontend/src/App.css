@@ -43,6 +43,26 @@ button, input, select, textarea { font: inherit; }
 
 .layout { min-height: 100vh; }
 
+/* Header de marca (solo móvil; en desktop la marca vive en el sidebar). */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+.topbar-logo {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+}
+.topbar-logo img { width: 100%; height: 100%; display: block; }
+.topbar-name { font-size: 18px; font-weight: 850; letter-spacing: -0.02em; color: var(--text); }
+
 .sidebar {
   position: fixed;
   left: 12px;
@@ -961,6 +981,7 @@ select.input {
 
 @media (min-width: 768px) {
   .layout { display: flex; }
+  .topbar { display: none; }
 
   .sidebar {
     top: 18px;

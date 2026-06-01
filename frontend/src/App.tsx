@@ -48,6 +48,11 @@ export default function App() {
           </div>
         </nav>
 
+        <header className="topbar">
+          <span className="topbar-logo"><img src="/icon.svg" alt="Caruso Tech" /></span>
+          <span className="topbar-name">Caruso Tech</span>
+        </header>
+
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
