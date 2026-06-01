@@ -157,67 +157,50 @@ function extractCandidates(text: string): string[] {
 // Preprocesamiento de imagen
 // ─────────────────────────────────────────────────────────────────────────────
 
-type PreprocessVariant = {
+type Rotation = 0 | 90 | 180 | 270;
+
+type Pipeline = {
   name: string;
-  rotation: 0 | 90 | 180 | 270;
   apply: (s: sharp.Sharp) => sharp.Sharp;
 };
 
-/**
- * Generamos combinaciones de rotación + pipeline. Para fotos tomadas con
- * el teléfono acostado o al revés, la única forma de que Tesseract lea
- * correctamente es probar cada rotación.
- */
-function buildVariants(): PreprocessVariant[] {
-  const pipelines: Array<{ name: string; apply: PreprocessVariant['apply'] }> = [
-    {
-      name: 'contrast_threshold',
-      apply: (s) =>
-        s
-          .resize({ width: 2400, withoutEnlargement: false })
-          .grayscale()
-          .normalize()
-          .linear(1.3, -30)
-          .threshold(170),
-    },
-    {
-      name: 'gray_sharpen',
-      apply: (s) =>
-        s
-          .resize({ width: 2000, withoutEnlargement: false })
-          .grayscale()
-          .normalize()
-          .sharpen(),
-    },
-  ];
+// El cliente ya manda imágenes ≤1600px; trabajar a 1500 alcanza de sobra para
+// leer 15 dígitos y es mucho más barato que reescalar a 2000-2400.
+const OCR_WIDTH = 1500;
 
-  const rotations: Array<0 | 90 | 180 | 270> = [0, 90, 270, 180];
+// Pipeline primaria (la que mejor lee pantallas tipo "Información") y la
+// secundaria (rescata casos de bajo contraste / fotos movidas).
+const PIPELINE_PRIMARY: Pipeline = {
+  name: 'contrast_threshold',
+  apply: (s) =>
+    s
+      .resize({ width: OCR_WIDTH, withoutEnlargement: false })
+      .grayscale()
+      .normalize()
+      .linear(1.3, -30)
+      .threshold(170),
+};
 
-  const variants: PreprocessVariant[] = [];
-  for (const rot of rotations) {
-    for (const p of pipelines) {
-      variants.push({
-        name: `${p.name}_r${rot}`,
-        rotation: rot,
-        apply: p.apply,
-      });
-    }
-  }
-  return variants;
-}
+const PIPELINE_SECONDARY: Pipeline = {
+  name: 'gray_sharpen',
+  apply: (s) =>
+    s
+      .resize({ width: OCR_WIDTH, withoutEnlargement: false })
+      .grayscale()
+      .normalize()
+      .sharpen(),
+};
 
-async function preprocessVariant(
+async function preprocess(
   input: Buffer,
-  variant: PreprocessVariant,
+  rotation: Rotation,
+  pipeline: Pipeline,
 ): Promise<Buffer> {
   // sharp(...).rotate() sin argumentos respeta EXIF.
   // rotate(90/180/270) aplica rotación explícita sobre la imagen.
   const base$ = sharp(input).rotate(); // aplica EXIF primero
-  const rotated =
-    variant.rotation === 0 ? base$ : base$.rotate(variant.rotation);
-  const pipeline = variant.apply(rotated);
-
-  return pipeline.toFormat('png').toBuffer();
+  const rotated = rotation === 0 ? base$ : base$.rotate(rotation);
+  return pipeline.apply(rotated).toFormat('png').toBuffer();
 }
 
 async function runTesseract(image: Buffer, psm: number): Promise<string> {
@@ -234,40 +217,50 @@ async function runTesseract(image: Buffer, psm: number): Promise<string> {
 // Entrypoint
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * OCR por tiers. Las rotaciones (90/180/270) sólo sirven si la foto está
+ * acostada o al revés; si la rotación 0 ya leyó un IMEI confiable, la imagen
+ * está derecha y rotarla no aporta. Esto da:
+ *   - caso común (foto derecha, 1-2 IMEIs) → 1-2 pasadas de Tesseract
+ *   - caso difícil (foto rotada / sin lectura) → cae a todas las rotaciones,
+ *     igual que el comportamiento anterior (no-regresión).
+ *
+ * PSM 6 (bloque uniforme) funciona mejor para pantallas tipo "Información".
+ */
 export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResult> {
-  const variants = buildVariants();
   const textos: string[] = [];
-
-  // PSM 6 (bloque uniforme) funciona mejor para pantallas tipo "About".
-  const psms = [6];
-
   let detectados: string[] = [];
 
-  outer: for (const variant of variants) {
-    let ppBuffer: Buffer;
+  // Corre una variante (rotación + pipeline), acumula texto y recalcula candidatos.
+  const pass = async (rotation: Rotation, pipeline: Pipeline): Promise<void> => {
     try {
-      ppBuffer = await preprocessVariant(imageBuffer, variant);
+      const ppBuffer = await preprocess(imageBuffer, rotation, pipeline);
+      const t = await runTesseract(ppBuffer, 6);
+      if (t && t.trim().length > 0) textos.push(t);
+      detectados = extractCandidates(textos.join('\n'));
     } catch (err) {
-      console.warn(`[OCR] preprocess "${variant.name}" falló:`, err);
-      continue;
+      console.warn(`[OCR] falló ${pipeline.name}_r${rotation}:`, err);
     }
+  };
 
-    for (const psm of psms) {
-      try {
-        const t = await runTesseract(ppBuffer, psm);
-        if (t && t.trim().length > 0) textos.push(t);
-      } catch (err) {
-        console.warn(`[OCR] fallo con PSM ${psm} en ${variant.name}:`, err);
-      }
-    }
-
-    // Early exit: si ya tenemos al menos 1 IMEI confiable, seguimos probando
-    // solo hasta completar 2 (IMEI + IMEI2) o agotar variantes.
-    detectados = extractCandidates(textos.join('\n'));
-    if (detectados.length >= 2) break outer;
+  // ── Tier 1: rotación 0 ──────────────────────────────────────────────────
+  await pass(0, PIPELINE_PRIMARY);
+  if (detectados.length < 2) {
+    await pass(0, PIPELINE_SECONDARY);
   }
 
-  // Fallback: si no encontramos nada con preprocess, probar imagen cruda
+  // ── Tier 2: sólo si rotación 0 no leyó NADA → la foto está rotada ───────
+  if (detectados.length === 0) {
+    const rotations: Rotation[] = [180, 90, 270];
+    outer: for (const rot of rotations) {
+      for (const pipeline of [PIPELINE_PRIMARY, PIPELINE_SECONDARY]) {
+        await pass(rot, pipeline);
+        if (detectados.length >= 2) break outer;
+      }
+    }
+  }
+
+  // ── Fallback: imagen cruda sin preprocesar ──────────────────────────────
   if (detectados.length === 0) {
     try {
       textos.push(await runTesseract(imageBuffer, 6));
@@ -277,7 +270,5 @@ export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResu
     }
   }
 
-  const textoCompleto = textos.join('\n');
-
-  return { candidatos: detectados, textoCompleto };
+  return { candidatos: detectados, textoCompleto: textos.join('\n') };
 }

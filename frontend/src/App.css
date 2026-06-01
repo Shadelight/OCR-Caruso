@@ -487,6 +487,37 @@ textarea.input { resize: vertical; }
 .drop-chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .drop-chip { padding: 6px 9px; border-radius: 999px; color: #1d4ed8; background: rgba(37, 99, 235, 0.08); font-size: 12px; font-weight: 800; }
 
+.capture-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; margin-top: 4px; }
+.capture-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; font-size: 16px; }
+.capture-btn span { font-size: 18px; line-height: 1; }
+@media (min-width: 600px) { .capture-actions { flex-direction: row; } }
+
+/* ── Combobox de modelo (ModeloPicker) ─────────────────────────────────── */
+.combo { position: relative; }
+.combo-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 256px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-hover);
+}
+.combo-option {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+}
+.combo-option--active { background: var(--primary-soft); color: var(--primary-hover); }
+
 .upload-preview-grid {
   width: min(100%, 820px);
   display: grid;

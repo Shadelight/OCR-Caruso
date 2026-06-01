@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createEquipo, getTiendas } from '../api/client';
 import { EstadoEquipo, ESTADOS, ESTADO_LABELS, Tienda } from '../types';
+import ModeloPicker from './ModeloPicker';
 
 interface Props {
   imei: string;
@@ -93,7 +94,11 @@ export default function EquipoForm({ imei, imei2, imagenRuta, onSaved, onBack }:
       <div className="field-row">
         <div className="field">
           <label>Modelo del telefono *</label>
-          <input className="input" placeholder="Ej: Samsung Galaxy A54" value={form.modelo} onChange={set('modelo')} />
+          <ModeloPicker
+            value={form.modelo}
+            onChange={(v) => setForm((f) => ({ ...f, modelo: v }))}
+            placeholder="Buscar iPhone…"
+          />
         </div>
         <div className="field">
           <label>Estado *</label>

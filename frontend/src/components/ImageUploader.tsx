@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { extractImei } from '../api/client';
+import { downscaleImage } from '../lib/downscaleImage';
 import { OcrResponse } from '../types';
 
 interface Props {
@@ -7,7 +8,8 @@ interface Props {
 }
 
 export default function ImageUploader({ onResult }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -17,10 +19,12 @@ export default function ImageUploader({ onResult }: Props) {
   const handleFile = async (file: File) => {
     setError(null);
     setSuccessResult(null);
-    setPreview(URL.createObjectURL(file));
     setLoading(true);
     try {
-      const result = await extractImei(file);
+      // Reducimos en el cliente antes de subir: foto típica 5-12 MB → ~300 KB.
+      const optimized = await downscaleImage(file);
+      setPreview(URL.createObjectURL(optimized));
+      const result = await extractImei(optimized);
       setSuccessResult(result);
       window.setTimeout(() => onResult(result), 650);
     } catch {
@@ -46,14 +50,14 @@ export default function ImageUploader({ onResult }: Props) {
     setPreview(null);
     setSuccessResult(null);
     setError(null);
-    if (inputRef.current) inputRef.current.value = '';
+    if (cameraRef.current) cameraRef.current.value = '';
+    if (uploadRef.current) uploadRef.current.value = '';
   };
 
   return (
     <div className="uploader">
       <div
         className={`drop-zone ${loading ? 'drop-zone--loading' : ''} ${dragging ? 'drop-zone--drag' : ''} ${successResult ? 'drop-zone--success' : ''}`}
-        onClick={() => inputRef.current?.click()}
         onDrop={onDrop}
         onDragOver={(e) => {
           e.preventDefault();
@@ -84,19 +88,29 @@ export default function ImageUploader({ onResult }: Props) {
         ) : (
           <div className="drop-placeholder">
             <span className="drop-icon">OCR</span>
-            <p className="drop-title">{dragging ? 'Suelta la imagen' : 'Arrastra una imagen del IMEI'}</p>
+            <p className="drop-title">{dragging ? 'Suelta la imagen' : 'Escanea el IMEI'}</p>
             <p className="drop-copy">
               {dragging
                 ? 'El OCR empieza apenas entre el archivo.'
-                : 'La vista previa aparece al instante y el OCR detecta los numeros para confirmar.'}
+                : 'Toma una foto del IMEI o sube una imagen. El OCR detecta los numeros para confirmar.'}
             </p>
-            <div className="drop-chips">
-              <span className="drop-chip">JPG</span>
-              <span className="drop-chip">PNG</span>
-              <span className="drop-chip">TIFF</span>
-              <span className="drop-chip">Hasta 10 MB</span>
+            <div className="capture-actions">
+              <button
+                type="button"
+                className="btn btn-primary capture-btn"
+                onClick={() => cameraRef.current?.click()}
+              >
+                <span aria-hidden="true">📸</span> Tomar foto
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary capture-btn"
+                onClick={() => uploadRef.current?.click()}
+              >
+                <span aria-hidden="true">🖼️</span> Subir imagen
+              </button>
             </div>
-            <p className="drop-hint">Click para seleccionar archivo</p>
+            <p className="drop-hint">o arrastra una imagen aqui</p>
           </div>
         )}
 
@@ -120,8 +134,18 @@ export default function ImageUploader({ onResult }: Props) {
         )}
       </div>
 
+      {/* Cámara trasera directa en móvil */}
       <input
-        ref={inputRef}
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={onInputChange}
+      />
+      {/* Galería / archivos */}
+      <input
+        ref={uploadRef}
         type="file"
         accept="image/*"
         style={{ display: 'none' }}

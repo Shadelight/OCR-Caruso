@@ -131,8 +131,8 @@ export default function Home() {
 
       {step === 'upload' && (
         <div className="card motion-card">
-          <h2 className="card-title">Arrastra una imagen del IMEI</h2>
-          <p className="card-sub">OCR automatico en segundos, con vista previa inmediata.</p>
+          <h2 className="card-title">Escanea el IMEI</h2>
+          <p className="card-sub">Toma una foto o sube una imagen. OCR automatico con vista previa inmediata.</p>
           <ImageUploader onResult={handleOcrResult} />
         </div>
       )}
