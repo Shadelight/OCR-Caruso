@@ -89,6 +89,7 @@ export interface UpdateEquipoDto {
 export interface OcrResult {
   candidatos: string[];
   textoCompleto: string;
+  debug?: Record<string, unknown>;
 }
 
 export interface EquipoFilters {

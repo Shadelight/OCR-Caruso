@@ -11,6 +11,13 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
     return;
   }
 
+  // Log de entrada: así se ve qué manda cámara vs galería (mime, nombre, peso).
+  console.log('[OCR] recibido', JSON.stringify({
+    mime: req.file.mimetype,
+    name: req.file.originalname,
+    sizeKB: Math.round(req.file.size / 1024),
+  }));
+
   try {
     const result = await extractImeiFromImage(req.file.buffer);
     const imagenRuta = await saveImage(
@@ -22,6 +29,7 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
       candidatos: result.candidatos,
       textoCompleto: result.textoCompleto,
       imagenRuta,
+      debug: result.debug,
     });
   } catch (err) {
     console.error('[OCR Error]', err);

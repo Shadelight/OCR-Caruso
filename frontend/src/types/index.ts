@@ -61,4 +61,5 @@ export interface OcrResponse {
   candidatos: string[];
   textoCompleto: string;
   imagenRuta: string;
+  debug?: Record<string, unknown>;
 }

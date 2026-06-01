@@ -20,15 +20,22 @@ export default function ImageUploader({ onResult }: Props) {
     setError(null);
     setSuccessResult(null);
     setLoading(true);
+    const tStart = performance.now();
     try {
       // Reducimos en el cliente antes de subir: foto típica 5-12 MB → ~300 KB.
       const optimized = await downscaleImage(file);
       setPreview(URL.createObjectURL(optimized));
       const result = await extractImei(optimized);
+      console.info('[ocr] result', JSON.stringify({
+        totalMs: Math.round(performance.now() - tStart),
+        imeis: result.candidatos.length,
+        debug: result.debug,
+      }));
       setSuccessResult(result);
       window.setTimeout(() => onResult(result), 650);
-    } catch {
-      setError('Error al procesar la imagen. Intenta de nuevo.');
+    } catch (err) {
+      console.error('[ocr] fallo', err);
+      setError('No se pudo procesar la imagen. Probá sacar la foto de nuevo: buena luz, sin movimiento y con el IMEI llenando la pantalla.');
     } finally {
       setLoading(false);
     }

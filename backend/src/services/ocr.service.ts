@@ -191,6 +191,21 @@ const PIPELINE_SECONDARY: Pipeline = {
       .sharpen(),
 };
 
+// Contraste local adaptativo (CLAHE) + threshold: rescata fotos con sombra /
+// reflejo / bajo contraste donde el threshold GLOBAL borra los dígitos. CLAHE
+// ecualiza el contraste por regiones antes de binarizar. Es un tier de FALLBACK
+// (sólo corre si las pipelines primarias no leyeron nada): sobre fotos nítidas
+// sobre-ecualiza, pero ahí ni se usa.
+const PIPELINE_CLAHE: Pipeline = {
+  name: 'clahe_local',
+  apply: (s) =>
+    s
+      .resize({ width: 1800, withoutEnlargement: false })
+      .grayscale()
+      .clahe({ width: 80, height: 80 })
+      .threshold(150),
+};
+
 async function preprocess(
   input: Buffer,
   rotation: Rotation,
@@ -228,26 +243,37 @@ async function runTesseract(image: Buffer, psm: number): Promise<string> {
  * PSM 6 (bloque uniforme) funciona mejor para pantallas tipo "Información".
  */
 export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResult> {
+  const t0 = Date.now();
   const textos: string[] = [];
   let detectados: string[] = [];
+  let passes = 0;
+  let resolved = 'ninguno';
+
+  // Metadata de entrada (para logs/diagnóstico: formato, dims, orientación EXIF).
+  let meta: { format?: string; width?: number; height?: number; orientation?: number } = {};
+  try {
+    const m = await sharp(imageBuffer).metadata();
+    meta = { format: m.format, width: m.width, height: m.height, orientation: m.orientation };
+  } catch { /* sigue igual */ }
 
   // Corre una variante (rotación + pipeline), acumula texto y recalcula candidatos.
   const pass = async (rotation: Rotation, pipeline: Pipeline): Promise<void> => {
+    passes++;
     try {
       const ppBuffer = await preprocess(imageBuffer, rotation, pipeline);
       const t = await runTesseract(ppBuffer, 6);
       if (t && t.trim().length > 0) textos.push(t);
       detectados = extractCandidates(textos.join('\n'));
+      if (detectados.length > 0) resolved = `${pipeline.name}_r${rotation}`;
     } catch (err) {
       console.warn(`[OCR] falló ${pipeline.name}_r${rotation}:`, err);
     }
   };
 
-  // ── Tier 1: rotación 0 ──────────────────────────────────────────────────
-  await pass(0, PIPELINE_PRIMARY);
-  if (detectados.length < 2) {
-    await pass(0, PIPELINE_SECONDARY);
-  }
+  // ── Tier 1: rotación 0 (caso común: foto derecha) ───────────────────────
+  await pass(0, PIPELINE_PRIMARY);                              // nítido / screenshot
+  if (detectados.length < 2) await pass(0, PIPELINE_SECONDARY); // foto normal
+  if (detectados.length < 1) await pass(0, PIPELINE_CLAHE);     // sombra / bajo contraste
 
   // ── Tier 2: sólo si rotación 0 no leyó NADA → la foto está rotada ───────
   if (detectados.length === 0) {
@@ -262,13 +288,28 @@ export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResu
 
   // ── Fallback: imagen cruda sin preprocesar ──────────────────────────────
   if (detectados.length === 0) {
+    passes++;
     try {
       textos.push(await runTesseract(imageBuffer, 6));
       detectados = extractCandidates(textos.join('\n'));
+      if (detectados.length > 0) resolved = 'raw';
     } catch (err) {
       console.warn('[OCR] fallback original falló:', err);
     }
   }
 
-  return { candidatos: detectados, textoCompleto: textos.join('\n') };
+  const ms = Date.now() - t0;
+  const debug = {
+    format: meta.format,
+    width: meta.width,
+    height: meta.height,
+    orientation: meta.orientation,
+    passes,
+    resolved,
+    ms,
+    imeis: detectados.length,
+  };
+  console.log('[OCR]', JSON.stringify(debug));
+
+  return { candidatos: detectados, textoCompleto: textos.join('\n'), debug };
 }
