@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Equipo, ESTADO_LABELS, EstadoEquipo, ESTADOS, Tienda } from '../types';
-import { updateEquipo } from '../api/client';
+import { deleteEquipo, updateEquipo } from '../api/client';
 
 interface Props {
   equipos: Equipo[];
@@ -8,14 +8,30 @@ interface Props {
   onUpdated: () => void;
 }
 
+const fmtBs = (n: number): string =>
+  `Bs. ${(n ?? 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+function PhoneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+      <rect x="6" y="2.5" width="12" height="19" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editEstado, setEditEstado] = useState<EstadoEquipo>('RECIBIDO');
+  const [menuId, setMenuId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   const tiendaMap = Object.fromEntries(tiendas.map((t) => [t.id, t.nombre]));
+  const ganancia = (eq: Equipo) => (eq.precio ?? 0) - (eq.costoPieza ?? 0) - (eq.otrosCostos ?? 0);
 
   const startEdit = (equipo: Equipo) => {
+    setMenuId(null);
     setEditingId(equipo.id);
     setEditEstado(equipo.estado);
   };
@@ -31,6 +47,16 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
     }
   };
 
+  const handleDelete = async (eq: Equipo) => {
+    setMenuId(null);
+    const ok = window.confirm(
+      `¿Eliminar el equipo ${eq.modelo} (IMEI ${eq.imei})?\n\nSe puede recuperar luego (borrado suave).`,
+    );
+    if (!ok) return;
+    await deleteEquipo(eq.id);
+    onUpdated();
+  };
+
   if (equipos.length === 0) {
     return (
       <div className="empty-state">
@@ -43,77 +69,112 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
 
   return (
     <div className="equipment-grid">
-      {equipos.map((eq) => (
-        <article key={eq.id} className="equipment-card">
-          <div className="equipment-card__top">
-            <div className="equipment-title">
-              <span className="equipment-thumb">IMEI</span>
-              <div>
-                <strong>{eq.modelo}</strong>
-                <span>{new Date(eq.fechaIngreso).toLocaleString('es-AR')}</span>
+      {equipos.map((eq) => {
+        const g = ganancia(eq);
+        return (
+          <article key={eq.id} className="equipment-card">
+            <div className="equipment-card__top">
+              <div className="equipment-title">
+                <span className="equipment-thumb"><PhoneIcon /></span>
+                <div>
+                  <strong>{eq.modelo}</strong>
+                  <span>{new Date(eq.fechaIngreso).toLocaleString('es-BO')}</span>
+                </div>
+              </div>
+
+              <div className="card-head-right">
+                <span className={`badge badge--${eq.estado.toLowerCase().replace(/_/g, '-')}`}>
+                  {ESTADO_LABELS[eq.estado]}
+                </span>
+                <div className="menu-wrap">
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label="Acciones"
+                    aria-haspopup="true"
+                    aria-expanded={menuId === eq.id}
+                    onClick={() => setMenuId(menuId === eq.id ? null : eq.id)}
+                  >
+                    ⋮
+                  </button>
+                  {menuId === eq.id && (
+                    <>
+                      <div className="menu-backdrop" onClick={() => setMenuId(null)} />
+                      <div className="menu" role="menu">
+                        <button type="button" role="menuitem" onClick={() => startEdit(eq)}>
+                          Cambiar estado
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="menu-item--danger"
+                          onClick={() => handleDelete(eq)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-            {editingId === eq.id ? (
-              <select
-                className="input input--sm"
-                value={editEstado}
-                onChange={(e) => setEditEstado(e.target.value as EstadoEquipo)}
-              >
-                {ESTADOS.map((s) => (
-                  <option key={s} value={s}>{ESTADO_LABELS[s]}</option>
-                ))}
-              </select>
-            ) : (
-              <span className={`badge badge--${eq.estado.toLowerCase().replace('_', '-')}`}>
-                {ESTADO_LABELS[eq.estado]}
-              </span>
+
+            <div className="equipment-meta">
+              <div>
+                <span>Cliente</span>
+                <strong>{eq.clienteNombre}</strong>
+                {eq.clienteTelefono && <small className="cell-sub">{eq.clienteTelefono}</small>}
+              </div>
+              <div>
+                <span>Servicio</span>
+                <strong>{eq.servicio}</strong>
+              </div>
+              <div>
+                <span>IMEI 1</span>
+                <strong className="imei-cell">{eq.imei}</strong>
+              </div>
+              <div>
+                <span>IMEI 2</span>
+                <strong className="imei-cell">{eq.imei2 ?? '-'}</strong>
+              </div>
+              <div>
+                <span>Total cobrado</span>
+                <strong>{fmtBs(eq.precio)}</strong>
+              </div>
+              <div>
+                <span>Ganancia</span>
+                <strong className={g < 0 ? 'gan-neg' : 'gan-pos'}>
+                  {g < 0 ? '− ' : '+ '}{fmtBs(Math.abs(g))}
+                </strong>
+              </div>
+              <div>
+                <span>Tienda</span>
+                <strong>{eq.tiendaId ? tiendaMap[eq.tiendaId] ?? '-' : '-'}</strong>
+              </div>
+            </div>
+
+            {editingId === eq.id && (
+              <div className="estado-editor">
+                <select
+                  className="input input--sm"
+                  value={editEstado}
+                  onChange={(e) => setEditEstado(e.target.value as EstadoEquipo)}
+                >
+                  {ESTADOS.map((s) => (
+                    <option key={s} value={s}>{ESTADO_LABELS[s]}</option>
+                  ))}
+                </select>
+                <button className="btn btn-primary btn-xs" onClick={() => saveEstado(eq.id)} disabled={saving}>
+                  Guardar
+                </button>
+                <button className="btn btn-secondary btn-xs" onClick={() => setEditingId(null)}>
+                  Cancelar
+                </button>
+              </div>
             )}
-          </div>
-
-          <div className="equipment-meta">
-            <div>
-              <span>Cliente</span>
-              <strong>{eq.clienteNombre}</strong>
-              {eq.clienteTelefono && <small className="cell-sub">{eq.clienteTelefono}</small>}
-            </div>
-            <div>
-              <span>Servicio</span>
-              <strong>{eq.servicio}</strong>
-            </div>
-            <div>
-              <span>IMEI 1</span>
-              <strong className="imei-cell">{eq.imei}</strong>
-            </div>
-            <div>
-              <span>IMEI 2</span>
-              <strong className="imei-cell">{eq.imei2 ?? '-'}</strong>
-            </div>
-            <div>
-              <span>Precio</span>
-              <strong>${eq.precio.toLocaleString('es-AR')}</strong>
-            </div>
-            <div>
-              <span>Tienda</span>
-              <strong>{eq.tiendaId ? tiendaMap[eq.tiendaId] ?? '-' : '-'}</strong>
-            </div>
-          </div>
-
-          {editingId === eq.id ? (
-            <div className="action-group">
-              <button className="btn btn-primary btn-xs" onClick={() => saveEstado(eq.id)} disabled={saving}>
-                Guardar
-              </button>
-              <button className="btn btn-secondary btn-xs" onClick={() => setEditingId(null)}>
-                Cancelar
-              </button>
-            </div>
-          ) : (
-            <button className="btn btn-secondary btn-xs" onClick={() => startEdit(eq)}>
-              Editar estado
-            </button>
-          )}
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

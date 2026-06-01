@@ -4,7 +4,8 @@ export type EstadoEquipo =
   | 'PENDIENTE'
   | 'EN_REPARACION'
   | 'REPARADO'
-  | 'ENTREGADO';
+  | 'ENTREGADO'
+  | 'CANCELADO';
 
 export const ESTADOS: EstadoEquipo[] = [
   'RECIBIDO',
@@ -13,6 +14,7 @@ export const ESTADOS: EstadoEquipo[] = [
   'EN_REPARACION',
   'REPARADO',
   'ENTREGADO',
+  'CANCELADO',
 ];
 
 export const ESTADO_LABELS: Record<EstadoEquipo, string> = {
@@ -22,6 +24,7 @@ export const ESTADO_LABELS: Record<EstadoEquipo, string> = {
   EN_REPARACION: 'En reparación',
   REPARADO: 'Reparado',
   ENTREGADO: 'Entregado',
+  CANCELADO: 'Cancelado',
 };
 
 export interface Tienda {

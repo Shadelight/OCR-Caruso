@@ -57,6 +57,10 @@ export async function updateEquipo(id: number, data: Partial<Equipo>): Promise<E
   return res.data;
 }
 
+export async function deleteEquipo(id: number): Promise<void> {
+  await api.delete(`/equipos/${id}`);
+}
+
 // ─── Tiendas ────────────────────────────────────────────────────────────────
 
 export async function getTiendas(): Promise<Tienda[]> {

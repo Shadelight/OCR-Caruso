@@ -57,6 +57,7 @@ export async function initDb(): Promise<void> {
       observaciones   TEXT,
       estado          TEXT    NOT NULL DEFAULT 'RECIBIDO',
       imagenRuta      TEXT,
+      deletedAt       TEXT,
       createdAt       TEXT    NOT NULL DEFAULT (datetime('now')),
       updatedAt       TEXT    NOT NULL DEFAULT (datetime('now'))
     );
@@ -72,6 +73,7 @@ export async function initDb(): Promise<void> {
       { name: 'costoPieza', ddl: 'ADD COLUMN costoPieza REAL NOT NULL DEFAULT 0' },
       { name: 'manoDeObra', ddl: 'ADD COLUMN manoDeObra REAL NOT NULL DEFAULT 0' },
       { name: 'otrosCostos', ddl: 'ADD COLUMN otrosCostos REAL NOT NULL DEFAULT 0' },
+      { name: 'deletedAt', ddl: 'ADD COLUMN deletedAt TEXT' },
     ];
 
     for (const col of nuevas) {

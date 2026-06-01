@@ -4,7 +4,8 @@ export type EstadoEquipo =
   | 'PENDIENTE'
   | 'EN_REPARACION'
   | 'REPARADO'
-  | 'ENTREGADO';
+  | 'ENTREGADO'
+  | 'CANCELADO';
 
 export interface Tienda {
   id: number;
@@ -44,6 +45,7 @@ export interface Equipo {
   observaciones: string | null;
   estado: EstadoEquipo;
   imagenRuta: string | null;
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

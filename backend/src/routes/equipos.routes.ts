@@ -107,4 +107,23 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.delete('/:id', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: 'ID inválido.' });
+    return;
+  }
+  try {
+    const ok = await db.softDeleteEquipo(id);
+    if (!ok) {
+      res.status(404).json({ error: 'Equipo no encontrado.' });
+      return;
+    }
+    res.status(204).end();
+  } catch (err) {
+    console.error('[Equipos] Error al eliminar:', err);
+    res.status(500).json({ error: 'Error al eliminar el equipo.' });
+  }
+});
+
 export default router;

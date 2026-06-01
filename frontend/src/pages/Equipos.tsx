@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getEquipos, getTiendas } from '../api/client';
 import { Equipo, EstadoEquipo, ESTADO_LABELS, ESTADOS, Tienda } from '../types';
 import EquipoTable from '../components/EquipoTable';
+import { exportCsv, exportXlsx } from '../lib/exportEquipos';
 
 interface Filters {
   imei: string;
@@ -23,6 +24,9 @@ export default function Equipos() {
   const [tiendas, setTiendas] = useState<Tienda[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [loading, setLoading] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFilters = Object.values(filters).filter(Boolean).length;
 
   const fetchEquipos = useCallback(async () => {
     setLoading(true);
@@ -55,10 +59,36 @@ export default function Equipos() {
           <h1>Historial</h1>
           <p className="page-sub">{equipos.length} equipo{equipos.length !== 1 ? 's' : ''} encontrado{equipos.length !== 1 ? 's' : ''}</p>
         </div>
+        <div className="action-group">
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => exportCsv(equipos, tiendas)}
+            disabled={equipos.length === 0}
+          >
+            ⬇ CSV
+          </button>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => exportXlsx(equipos, tiendas)}
+            disabled={equipos.length === 0}
+          >
+            ⬇ Excel
+          </button>
+        </div>
       </div>
 
-      <div className="card">
-        <h3 className="card-title">Filtros inteligentes</h3>
+      <div className="card filter-card">
+        <button
+          type="button"
+          className="filter-toggle"
+          onClick={() => setFiltersOpen((o) => !o)}
+          aria-expanded={filtersOpen}
+        >
+          <span>🔍 Filtros{activeFilters > 0 ? ` (${activeFilters})` : ''}</span>
+          <span className={`filter-chevron ${filtersOpen ? 'filter-chevron--open' : ''}`}>▾</span>
+        </button>
+        {filtersOpen && (
+        <>
         <div className="filter-grid">
           <div className="field">
             <label>Buscar por IMEI</label>
@@ -105,6 +135,8 @@ export default function Equipos() {
         >
           Limpiar filtros
         </button>
+        </>
+        )}
       </div>
 
       {loading ? (

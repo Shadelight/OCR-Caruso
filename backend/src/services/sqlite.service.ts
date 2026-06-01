@@ -80,7 +80,7 @@ export async function updateTienda(
 export async function getAllEquipos(
   filters: EquipoFilters = {},
 ): Promise<Equipo[]> {
-  const conditions: string[] = [];
+  const conditions: string[] = ['deletedAt IS NULL'];
   const args: InValue[] = [];
 
   if (filters.imei) {
@@ -113,7 +113,7 @@ export async function getAllEquipos(
     args.push(filters.fechaHasta);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const where = `WHERE ${conditions.join(' AND ')}`;
   const rs = await db.execute({
     sql: `SELECT * FROM equipos ${where} ORDER BY fechaIngreso DESC`,
     args,
@@ -131,7 +131,7 @@ export async function getEquipoById(id: number): Promise<Equipo | undefined> {
 
 export async function getEquipoByImei(imei: string): Promise<Equipo[]> {
   const rs = await db.execute({
-    sql: 'SELECT * FROM equipos WHERE imei = ? OR imei2 = ? ORDER BY fechaIngreso DESC',
+    sql: 'SELECT * FROM equipos WHERE (imei = ? OR imei2 = ?) AND deletedAt IS NULL ORDER BY fechaIngreso DESC',
     args: [imei, imei],
   });
   return mapRows<Equipo>(rs);
@@ -203,4 +203,14 @@ export async function updateEquipo(
   });
 
   return getEquipoById(id);
+}
+
+/** Soft delete: marca deletedAt en vez de borrar la fila (recuperable). */
+export async function softDeleteEquipo(id: number): Promise<boolean> {
+  const rs = await db.execute({
+    sql: `UPDATE equipos SET deletedAt = ?, updatedAt = ?
+          WHERE id = ? AND deletedAt IS NULL`,
+    args: [new Date().toISOString(), new Date().toISOString(), id],
+  });
+  return rs.rowsAffected > 0;
 }

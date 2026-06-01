@@ -878,6 +878,83 @@ select.input {
 
 .imei-cell { font-family: "SFMono-Regular", Consolas, monospace; word-break: break-all; }
 .cell-sub { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+.gan-pos { color: var(--success) !important; }
+.gan-neg { color: var(--danger) !important; }
+
+/* Cabecera derecha de la card: badge de estado + menú de acciones. */
+.card-head-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.icon-btn:hover { background: rgba(15, 23, 42, 0.06); color: var(--text); }
+
+/* Menú contextual ⋮ */
+.menu-wrap { position: relative; }
+.menu-backdrop { position: fixed; inset: 0; z-index: 40; }
+.menu {
+  position: absolute;
+  z-index: 41;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 168px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-hover);
+}
+.menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+.menu button:hover { background: var(--surface-soft); }
+.menu .menu-item--danger { color: var(--danger); }
+.menu .menu-item--danger:hover { background: #fef2f2; }
+
+/* Editor inline de estado (desde el menú). */
+.estado-editor { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.estado-editor .input { flex: 1; min-width: 150px; }
+
+/* Filtros colapsables */
+.filter-card { gap: 0; }
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-weight: 850;
+  color: var(--text);
+  cursor: pointer;
+}
+.filter-chevron { transition: transform 0.18s ease; color: var(--text-muted); }
+.filter-chevron--open { transform: rotate(180deg); }
+.filter-card .filter-grid { margin-top: 14px; }
+.filter-card .btn { margin-top: 12px; }
 
 .badge {
   display: inline-flex;
@@ -891,12 +968,13 @@ select.input {
   letter-spacing: 0.06em;
 }
 
-.badge--recibido { background: #e0f2fe; color: #0369a1; }
-.badge--en-diagnostico { background: #fef3c7; color: #92400e; }
-.badge--pendiente { background: #fee2e2; color: #991b1b; }
-.badge--en-reparacion { background: #fce7f3; color: #9d174d; }
-.badge--reparado { background: #d1fae5; color: #065f46; }
-.badge--entregado { background: #e2e8f0; color: #475569; }
+.badge--recibido { background: #e0f2fe; color: #0369a1; }       /* azul */
+.badge--en-diagnostico { background: #fef3c7; color: #92400e; } /* amarillo */
+.badge--pendiente { background: #ede9fe; color: #5b21b6; }      /* violeta */
+.badge--en-reparacion { background: #ffedd5; color: #9a3412; }  /* naranja */
+.badge--reparado { background: #d1fae5; color: #065f46; }       /* verde */
+.badge--entregado { background: #e2e8f0; color: #475569; }      /* gris */
+.badge--cancelado { background: #fee2e2; color: #b91c1c; }      /* rojo */
 
 .tienda-row {
   display: flex;
@@ -1158,5 +1236,6 @@ select.input {
 }
 
 @media (min-width: 1120px) {
-  .equipment-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* Máximo 2 columnas: cards más anchas, mejor lectura. */
+  .equipment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 980px; }
 }

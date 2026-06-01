@@ -35,6 +35,9 @@ export default defineConfig({
       workbox: {
         // Precachea el shell (HTML/CSS/JS) para que abra sin internet.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // xlsx (SheetJS) es pesado y sólo se usa al exportar (acción online).
+        // Lo dejamos fuera del precache: se baja on-demand.
+        globIgnores: ['**/xlsx-*.js'],
         // El SPA cae a index.html, pero nunca para las llamadas a la API.
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/uploads/],
