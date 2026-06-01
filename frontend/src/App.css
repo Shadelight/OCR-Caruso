@@ -348,6 +348,17 @@ button, input, select, textarea { font: inherit; }
 /* Texto de ayuda bajo un campo. */
 .field-hint { margin-top: -4px; font-size: 12px; color: var(--text-muted); }
 
+/* ── Detalle de equipo ─────────────────────────────────────────────────── */
+.detalle-foto { padding: 0; overflow: hidden; }
+.detalle-foto img { width: 100%; max-height: 380px; object-fit: contain; background: #0b0e13; display: block; }
+.detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.detalle-grid > div { min-width: 0; }
+.detalle-grid span { display: block; color: var(--text-soft); font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: 0.06em; }
+.detalle-grid strong { display: block; margin-top: 2px; color: #344054; font-size: 15px; word-break: break-word; }
+.detalle-notas { margin-top: 2px; }
+.detalle-notas span { display: block; color: var(--text-soft); font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: 0.06em; }
+.detalle-notas p { margin-top: 4px; color: var(--text); font-size: 14px; white-space: pre-wrap; }
+
 .input {
   width: 100%;
   min-height: 44px;

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import Home from './pages/Home';
 import Equipos from './pages/Equipos';
+import EquipoDetalle from './pages/EquipoDetalle';
 import Tiendas from './pages/Tiendas';
 import InstallPrompt from './components/InstallPrompt';
 import './App.css';
@@ -57,6 +58,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/equipos" element={<Equipos />} />
+            <Route path="/equipos/:id" element={<EquipoDetalle />} />
             <Route path="/tiendas" element={<Tiendas />} />
           </Routes>
         </main>

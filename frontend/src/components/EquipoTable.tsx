@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Equipo, ESTADO_LABELS, EstadoEquipo, ESTADOS, Tienda } from '../types';
 import { deleteEquipo, updateEquipo } from '../api/client';
 
@@ -26,6 +27,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
   const [editEstado, setEditEstado] = useState<EstadoEquipo>('RECIBIDO');
   const [menuId, setMenuId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   const tiendaMap = Object.fromEntries(tiendas.map((t) => [t.id, t.nombre]));
   const ganancia = (eq: Equipo) => (eq.precio ?? 0) - (eq.costoPieza ?? 0) - (eq.otrosCostos ?? 0);
@@ -101,6 +103,9 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
                     <>
                       <div className="menu-backdrop" onClick={() => setMenuId(null)} />
                       <div className="menu" role="menu">
+                        <button type="button" role="menuitem" onClick={() => navigate(`/equipos/${eq.id}`)}>
+                          Ver detalle
+                        </button>
                         <button type="button" role="menuitem" onClick={() => startEdit(eq)}>
                           Cambiar estado
                         </button>
