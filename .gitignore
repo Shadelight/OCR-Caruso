@@ -45,6 +45,9 @@ backend/uploads/*
 # Caches de Tesseract.js
 .tesseract/
 
+# Mockups del companion visual de brainstorming
+.superpowers/
+
 # Editor / SO
 .DS_Store
 Thumbs.db
