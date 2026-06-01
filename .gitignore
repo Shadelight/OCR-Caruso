@@ -48,6 +48,10 @@ backend/uploads/*
 # Mockups del companion visual de brainstorming
 .superpowers/
 
+# Artefactos del sistema de skills (no son de la app)
+.agents/
+skills-lock.json
+
 # Editor / SO
 .DS_Store
 Thumbs.db
