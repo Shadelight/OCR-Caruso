@@ -32,10 +32,8 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir imágenes solo cuando se guardan en disco local (dev sin Supabase).
-if (!usingCloudStorage) {
-  app.use('/uploads', express.static(path.resolve('./uploads')));
-}
+// Servir imágenes locales. También se usa como fallback si Supabase falla.
+app.use('/uploads', express.static(path.resolve('./uploads')));
 
 // Rutas API
 app.use('/api/ocr', ocrRoutes);
