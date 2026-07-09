@@ -79,7 +79,12 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
               <div className="equipment-title">
                 <span className="equipment-thumb"><PhoneIcon /></span>
                 <div>
-                  <strong>{eq.modelo}</strong>
+                  <strong>
+                    {eq.modelo}{' '}
+                    {eq.imagenRuta && /^(https?:|\/)/i.test(eq.imagenRuta) && (
+                      <a href={eq.imagenRuta} target="_blank" rel="noreferrer" title="Ver foto del IMEI">📷</a>
+                    )}
+                  </strong>
                   <span>{new Date(eq.fechaIngreso).toLocaleString('es-BO')}</span>
                 </div>
               </div>
