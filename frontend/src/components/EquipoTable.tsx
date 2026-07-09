@@ -12,6 +12,9 @@ interface Props {
 const fmtBs = (n: number): string =>
   `Bs. ${(n ?? 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const isViewableImagePath = (ruta: string | null): ruta is string =>
+  Boolean(ruta && /^(https?:\/\/|\/(?![/\\]))/i.test(ruta));
+
 function PhoneIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
@@ -79,12 +82,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
               <div className="equipment-title">
                 <span className="equipment-thumb"><PhoneIcon /></span>
                 <div>
-                  <strong>
-                    {eq.modelo}{' '}
-                    {eq.imagenRuta && /^(https?:\/\/|\/(?![/\\]))/i.test(eq.imagenRuta) && (
-                      <a href={eq.imagenRuta} target="_blank" rel="noreferrer" title="Ver foto del IMEI">📷</a>
-                    )}
-                  </strong>
+                  <strong>{eq.modelo}</strong>
                   <span>{new Date(eq.fechaIngreso).toLocaleString('es-BO')}</span>
                 </div>
               </div>
@@ -146,6 +144,24 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
               <div>
                 <span>IMEI 2</span>
                 <strong className="imei-cell">{eq.imei2 ?? '-'}</strong>
+              </div>
+              <div>
+                <span>Foto IMEI</span>
+                {isViewableImagePath(eq.imagenRuta) ? (
+                  <div className="imei-photo-preview">
+                    <img src={eq.imagenRuta} alt={`Foto del IMEI de ${eq.modelo}`} loading="lazy" />
+                    <a
+                      className="imei-photo-link"
+                      href={eq.imagenRuta}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ver grande
+                    </a>
+                  </div>
+                ) : (
+                  <strong className="muted-value">Sin foto guardada</strong>
+                )}
               </div>
               <div>
                 <span>Total cobrado</span>
