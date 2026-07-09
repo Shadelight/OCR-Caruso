@@ -5,6 +5,15 @@ import { saveImage } from '../services/storage.service';
 
 const router = Router();
 
+function publicImageUrl(req: Request, imagenRuta: string): string {
+  if (/^https?:\/\//i.test(imagenRuta)) return imagenRuta;
+  if (!imagenRuta.startsWith('/')) return imagenRuta;
+
+  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const protocol = forwardedProto || req.protocol;
+  return `${protocol}://${req.get('host')}${imagenRuta}`;
+}
+
 router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ error: 'No se recibió ninguna imagen.' });
@@ -20,9 +29,8 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
 
   try {
     const result = await extractImeiFromImage(req.file.buffer);
-    // Si falla el guardado (Supabase caído/pausado), el OCR ya se hizo:
-    // se responde sin imagen en vez de tirar todo el request a 500.
-    let imagenRuta = '';
+
+    let imagenRuta: string;
     try {
       imagenRuta = await saveImage(
         req.file.buffer,
@@ -30,12 +38,17 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
         req.file.mimetype,
       );
     } catch (err) {
-      console.warn('[OCR] saveImage falló (se responde sin imagen):', err);
+      console.error('[OCR] saveImage falló:', err);
+      res.status(500).json({
+        error: 'Se detectaron los IMEIs, pero no se pudo guardar la foto. Intenta de nuevo antes de registrar el equipo.',
+      });
+      return;
     }
+
     res.json({
       candidatos: result.candidatos,
       textoCompleto: result.textoCompleto,
-      imagenRuta,
+      imagenRuta: publicImageUrl(req, imagenRuta),
       debug: result.debug,
     });
   } catch (err) {

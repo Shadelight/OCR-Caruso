@@ -35,7 +35,8 @@ export default function ImageUploader({ onResult }: Props) {
       window.setTimeout(() => onResult(result), 650);
     } catch (err) {
       console.error('[ocr] fallo', err);
-      setError('No se pudo procesar la imagen. Probá sacar la foto de nuevo: buena luz, sin movimiento y con el IMEI llenando la pantalla.');
+      const serverError = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
+      setError(serverError || 'No se pudo procesar la imagen. Probá sacar la foto de nuevo: buena luz, sin movimiento y con el IMEI llenando la pantalla.');
     } finally {
       setLoading(false);
     }
