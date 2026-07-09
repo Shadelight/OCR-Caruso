@@ -27,6 +27,13 @@ function buildFilename(originalName: string): string {
   return `ocr_${Date.now()}${ext}`;
 }
 
+async function saveLocalImage(filename: string, buffer: Buffer): Promise<string> {
+  const uploadsDir = path.resolve('./uploads');
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  await fs.promises.writeFile(path.join(uploadsDir, filename), buffer);
+  return `/uploads/${filename}`;
+}
+
 export async function saveImage(
   buffer: Buffer,
   originalName: string,
@@ -35,19 +42,21 @@ export async function saveImage(
   const filename = buildFilename(originalName);
 
   if (supabase) {
-    const { error } = await supabase.storage
-      .from(SUPABASE_BUCKET)
-      .upload(filename, buffer, { contentType: mimetype, upsert: false });
-    if (error) {
-      throw new Error(`Error al subir a Supabase Storage: ${error.message}`);
+    try {
+      const { error } = await supabase.storage
+        .from(SUPABASE_BUCKET)
+        .upload(filename, buffer, { contentType: mimetype, upsert: false });
+      if (error) {
+        throw new Error(error.message);
+      }
+      const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(filename);
+      return data.publicUrl;
+    } catch (err) {
+      console.warn('[Storage] Supabase falló; usando disco local:', err);
+      return saveLocalImage(filename, buffer);
     }
-    const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(filename);
-    return data.publicUrl;
   }
 
   // Fallback local (desarrollo)
-  const uploadsDir = path.resolve('./uploads');
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-  await fs.promises.writeFile(path.join(uploadsDir, filename), buffer);
-  return `/uploads/${filename}`;
+  return saveLocalImage(filename, buffer);
 }
