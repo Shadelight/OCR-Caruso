@@ -20,11 +20,18 @@ router.post('/extract-imei', upload.single('imagen'), async (req: Request, res: 
 
   try {
     const result = await extractImeiFromImage(req.file.buffer);
-    const imagenRuta = await saveImage(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
-    );
+    // Si falla el guardado (Supabase caído/pausado), el OCR ya se hizo:
+    // se responde sin imagen en vez de tirar todo el request a 500.
+    let imagenRuta = '';
+    try {
+      imagenRuta = await saveImage(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+      );
+    } catch (err) {
+      console.warn('[OCR] saveImage falló (se responde sin imagen):', err);
+    }
     res.json({
       candidatos: result.candidatos,
       textoCompleto: result.textoCompleto,

@@ -242,6 +242,13 @@ async function runTesseract(image: Buffer, psm: number): Promise<string> {
  *
  * PSM 6 (bloque uniforme) funciona mejor para pantallas tipo "Información".
  */
+// Presupuesto total de la cascada. En Render free (~0.1 vCPU) cada pasada de
+// Tesseract puede tardar 10-30 s; sin tope, una foto difícil (hasta ~10
+// pasadas) supera los ~100 s del proxy y el cliente recibe error aunque el
+// OCR "siga trabajando". Superado el budget no se inician pasadas nuevas y se
+// responde con lo acumulado hasta ahí.
+const OCR_BUDGET_MS = Number(process.env.OCR_BUDGET_MS) || 60_000;
+
 export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResult> {
   const t0 = Date.now();
   const textos: string[] = [];
@@ -258,6 +265,10 @@ export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResu
 
   // Corre una variante (rotación + pipeline), acumula texto y recalcula candidatos.
   const pass = async (rotation: Rotation, pipeline: Pipeline): Promise<void> => {
+    if (Date.now() - t0 > OCR_BUDGET_MS) {
+      if (resolved === 'ninguno') resolved = 'budget_agotado';
+      return;
+    }
     passes++;
     try {
       const ppBuffer = await preprocess(imageBuffer, rotation, pipeline);
@@ -287,7 +298,7 @@ export async function extractImeiFromImage(imageBuffer: Buffer): Promise<OcrResu
   }
 
   // ── Fallback: imagen cruda sin preprocesar ──────────────────────────────
-  if (detectados.length === 0) {
+  if (detectados.length === 0 && Date.now() - t0 <= OCR_BUDGET_MS) {
     passes++;
     try {
       textos.push(await runTesseract(imageBuffer, 6));
