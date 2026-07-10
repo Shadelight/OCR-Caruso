@@ -919,6 +919,7 @@ select.input {
   fill: #2563eb;
 }
 
+.equipment-card__top--clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
 .equipment-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .equipment-title strong { display: block; font-size: 17px; letter-spacing: -0.025em; }
 .equipment-title span { display: block; color: var(--text-muted); font-size: 13px; }

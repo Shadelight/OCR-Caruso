@@ -32,6 +32,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editEstado, setEditEstado] = useState<EstadoEquipo>('RECIBIDO');
   const [menuId, setMenuId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
@@ -79,18 +80,32 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
     <div className="equipment-grid">
       {equipos.map((eq) => {
         const g = ganancia(eq);
+        const expanded = expandedId === eq.id;
         return (
           <article key={eq.id} className="equipment-card">
-            <div className="equipment-card__top">
+            <div
+              className="equipment-card__top equipment-card__top--clickable"
+              role="button"
+              tabIndex={0}
+              aria-expanded={expanded}
+              onClick={() => setExpandedId(expanded ? null : eq.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setExpandedId(expanded ? null : eq.id);
+                }
+              }}
+            >
               <div className="equipment-title">
                 <span className="equipment-thumb"><PhoneIcon /></span>
                 <div>
                   <strong>{eq.modelo}</strong>
                   <span>{new Date(eq.fechaIngreso).toLocaleString('es-BO')}</span>
+                  <span className="imei-cell">{eq.imei}</span>
                 </div>
               </div>
 
-              <div className="card-head-right">
+              <div className="card-head-right" onClick={(e) => e.stopPropagation()}>
                 <span className={`badge badge--${eq.estado.toLowerCase().replace(/_/g, '-')}`}>
                   {ESTADO_LABELS[eq.estado]}
                 </span>
@@ -130,6 +145,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
               </div>
             </div>
 
+            {expanded && (
             <div className="equipment-meta">
               <div>
                 <span>Cliente</span>
@@ -181,6 +197,7 @@ export default function EquipoTable({ equipos, tiendas, onUpdated }: Props) {
                 <strong>{eq.tiendaId ? tiendaMap[eq.tiendaId] ?? '-' : '-'}</strong>
               </div>
             </div>
+            )}
 
             {editingId === eq.id && (
               <div className="estado-editor">
