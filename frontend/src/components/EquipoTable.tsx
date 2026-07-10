@@ -17,10 +17,13 @@ const isViewableImagePath = (ruta: string | null): ruta is string =>
 
 function PhoneIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-      <rect x="6" y="2.5" width="12" height="19" rx="3" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    <svg className="phone-glyph" viewBox="0 0 32 32" aria-hidden="true">
+      <rect className="phone-glyph__body" x="8" y="3" width="16" height="26" rx="4.5" />
+      <rect className="phone-glyph__screen" x="10.5" y="6" width="11" height="19" rx="2.4" />
+      <path className="phone-glyph__camera" d="M14 7.8h4" />
+      <circle className="phone-glyph__lens" cx="16" cy="15.5" r="3.2" />
+      <circle className="phone-glyph__dot" cx="16" cy="15.5" r="1.1" />
+      <path className="phone-glyph__home" d="M14.6 26h2.8" />
     </svg>
   );
 }
